@@ -42,6 +42,9 @@ class Role
      */
     public function hasPermission($permission)
     {
+        if (!$permission) {
+            return false;
+        }
         foreach ($this->permissions as $perm) {
             if ($perm->name == $permission) {
                 return true;

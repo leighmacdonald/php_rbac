@@ -17,7 +17,7 @@ class RoleSet
     /**
      * @var Role[]
      */
-    private $roles;
+    private $roles = [];
 
     /**
      * Setup the default data set
@@ -35,10 +35,15 @@ class RoleSet
      * Add a new role to the role set
      *
      * @param Role $role
+     * @return bool
      */
     public function addRole(Role $role)
     {
-        $this->roles[] = $role;
+        if (!in_array($role, $this->roles)) {
+            $this->roles[] = $role;
+            return true;
+        }
+        return false;
     }
 
     /**

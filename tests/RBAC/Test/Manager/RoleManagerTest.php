@@ -9,9 +9,9 @@ use RBAC\Exception\ValidationError;
 use RBAC\Role\Permission;
 use RBAC\Role\Role;
 use RBAC\Manager\RoleManager;
-use RBAC\Test\TestCase;
+use RBAC\Test\DBTestCase;
 
-class RoleManagerTest extends TestCase
+class RoleManagerTest extends DBTestCase
 {
     /**
      * @var RoleManager

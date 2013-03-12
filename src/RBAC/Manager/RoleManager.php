@@ -12,6 +12,7 @@ use RBAC\Exception\ValidationError;
 use RBAC\Role\Permission;
 use RBAC\Role\Role;
 use RBAC\Role\RoleSet;
+use RBAC\UserInterface;
 
 class RoleManager
 {
@@ -141,6 +142,7 @@ class RoleManager
 
     /**
      * @param Permission $permission
+     * @throws \RBAC\Exception\ValidationError
      * @return bool
      */
     public function permissionDelete(Permission $permission)
@@ -199,7 +201,7 @@ class RoleManager
         try {
             $cur->execute();
             if (!$role->role_id) {
-                $role->role_id = (int)$this->db->lastInsertId();
+                $role->role_id = (int) $this->db->lastInsertId();
             }
             $this->db->commit();
         } catch (PDOException $db_err) {
@@ -222,7 +224,7 @@ class RoleManager
      *
      * @param Role $role Role to be updated
      * @param Permission $permission Permission to be added
-     * @throws Exception\ValidationError
+     * @throws \RBAC\Exception\ValidationError
      * @return bool Add success status
      */
     public function rolePermissionAdd(Role $role, Permission $permission)
@@ -259,7 +261,7 @@ class RoleManager
      * When deleted successfully the role instance passed in will have its role_id unset
      *
      * @param Role $role Role to be deleted
-     * @throws Exception\ValidationError
+     * @throws \RBAC\Exception\ValidationError
      * @return bool
      */
     public function roleDelete(Role $role)
@@ -359,26 +361,39 @@ class RoleManager
     public function roleFetchById($role_ids)
     {
         $multi = is_array($role_ids);
-        $role_ids = (array)$role_ids;
-        $in_query = join(",", array_fill(0, count($role_ids), "?"));
-        $query = "
-            SELECT
-                role_id, `name`, description, added_on, updated_on
-            FROM
-                auth_role
-            WHERE
-                role_id IN('{$in_query}')";
+        $role_ids = (array) $role_ids;
+        if ($multi) {
+            $in_query = join(",", array_fill(0, count($role_ids), "?"));
+            $query = "
+                SELECT
+                    role_id, `name`, description, added_on, updated_on
+                FROM
+                    auth_role
+                WHERE
+                    role_id IN('{$in_query}')";
+        } else {
+            $query = "
+                SELECT
+                  role_id, `name`, description, added_on, updated_on
+                FROM
+                    auth_role
+                WHERE
+                    role_id = :role_id
+            ";
+        }
 
         $cur = $this->db->prepare($query);
         try {
-            $cur->execute($role_ids);
             if ($multi) {
+                $cur->execute($role_ids);
                 $roles = $cur->fetchAll(PDO::FETCH_CLASS, self::CLASS_ROLE);
                 foreach ($roles as $role) {
                     $this->roleLoadPermissions($role);
                 }
                 return $roles;
             } else {
+                $cur->bindParam(":role_id", $role_ids[0], PDO::PARAM_INT);
+                $cur->execute();
                 $role = $cur->fetchObject(self::CLASS_ROLE);
                 $this->roleLoadPermissions($role);
                 return $role;
@@ -445,6 +460,22 @@ class RoleManager
      */
     public function roleAddUser(Role $role, UserInterface $user)
     {
+        return $this->roleAddUserId($role, $user->id());
+    }
+
+    /**
+     * Add a user to an existing role.
+     *
+     * @param Role $role Existing role to be added to
+     * @param int $user_id Initialized user instance
+     * @throws \RBAC\Exception\ValidationError
+     * @return bool Database execution success status
+     */
+    public function roleAddUserId(Role $role, $user_id)
+    {
+        if (!$user_id) {
+            throw new ValidationError("Invalid user ID");
+        }
         $query = "
             INSERT IGNORE INTO
                 auth_user_role (user_id, role_id)
@@ -452,7 +483,7 @@ class RoleManager
                 (:user_id, :role_id)
         ";
         $cur = $this->db->prepare($query);
-        $cur->bindValue(":user_id", $user->id(), PDO::PARAM_INT);
+        $cur->bindValue(":user_id", $user_id, PDO::PARAM_INT);
         $cur->bindParam(":role_id", $role->role_id, PDO::PARAM_INT);
         $this->db->beginTransaction();
         try {
