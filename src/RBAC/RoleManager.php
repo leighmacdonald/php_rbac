@@ -146,6 +146,8 @@ class RoleManager
     }
 
     /**
+     * Save a role to the database, if the role_id is set, it will be updated
+     *
      * @param Role $role
      * @return bool
      */
