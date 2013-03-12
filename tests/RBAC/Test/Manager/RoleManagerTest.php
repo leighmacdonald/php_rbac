@@ -26,9 +26,14 @@ class RoleManagerTest extends DBTestCase
         $this->rm = $this->getRoleManager();
     }
 
+    protected function getMockManager()
+    {
+        return new RoleManager($this->getMockDB(), $this->getMockLogger());
+    }
+
     public function getRoleManager()
     {
-        return new RoleManager(self::$db);
+        return new RoleManager(self::$db, $this->getMockLogger());
     }
 
     public function testPermissionFetchById()
@@ -36,15 +41,26 @@ class RoleManagerTest extends DBTestCase
         $this->assertEquals(1, $this->rm->permissionFetchById(1)->permission_id);
     }
 
+
     public function testPermissionFetchByInvalidId()
     {
         $this->assertFalse($this->rm->permissionFetchById(-1));
+    }
+
+    public function testPermissionFetchByIdDBErr()
+    {
+        $this->assertFalse($this->getMockManager()->permissionFetchById(1));
     }
 
     public function testPermissionFetch()
     {
         $count_pre = $this->getConnection()->getRowCount("auth_permission");
         $this->assertEquals($count_pre, sizeof($this->rm->permissionFetch()));
+    }
+
+    public function testPermissionFetchDBErr()
+    {
+        $this->assertEquals([], $this->getMockManager()->permissionFetch());
     }
 
     public function testPermissionSave()
@@ -61,6 +77,11 @@ class RoleManagerTest extends DBTestCase
         $this->assertEquals($perm_fetched->permission_id, $perm->permission_id);
     }
 
+    public function testPermissionSaveDBErr()
+    {
+        $this->assertFalse($this->getMockManager()->permissionSave($this->generatePerm()));
+    }
+
     public function testPermissionDelete()
     {
         $perm = Permission::create("test_perm", "description text");
@@ -68,6 +89,11 @@ class RoleManagerTest extends DBTestCase
         $count_pre = $this->getConnection()->getRowCount("auth_permission");
         $this->assertTrue($this->rm->permissionDelete($perm));
         $this->assertEquals($count_pre - 1, $this->getConnection()->getRowCount("auth_permission"));
+    }
+
+    public function testPermissionDeleteDBErr()
+    {
+        $this->assertFalse($this->getMockManager()->permissionDelete($this->generatePerm()));
     }
 
     /**

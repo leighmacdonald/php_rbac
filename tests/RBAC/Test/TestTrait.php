@@ -6,6 +6,9 @@
 namespace RBAC\Test;
 
 use RBAC\Role\Permission;
+use RBAC\Test\Mock\MockLogger;
+use RBAC\Test\Mock\MockPDO;
+use RBAC\Test\Mock\MockPDOStatement;
 
 /**
  *
@@ -32,5 +35,22 @@ trait TestTrait
         $perm = Permission::create($name);
         $perm->permission_id = ++$this->current_perm_num;
         return $perm;
+    }
+
+    protected function getMockDB($throw = true)
+    {
+        $db = new MockPDO($this->getMockStatement($throw), $throw);
+        return $db;
+    }
+
+    protected function getMockStatement($throw = true)
+    {
+        $stmt = new MockPDOStatement(false, $throw);
+        return $stmt;
+    }
+
+    protected function getMockLogger()
+    {
+        return new MockLogger();
     }
 }

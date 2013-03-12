@@ -137,7 +137,12 @@ class RoleManager
             ORDER BY
                 `name`
         ";
-        return $this->db->query($query)->fetchAll(PDO::FETCH_CLASS, self::CLASS_PERMISSION);
+        try {
+            return $this->db->query($query)->fetchAll(PDO::FETCH_CLASS, self::CLASS_PERMISSION);
+        } catch (PDOException $db_err) {
+            $this->log->error("Database error trying to fetch permissions", ['exception' => $db_err]);
+            return [];
+        }
     }
 
     /**
