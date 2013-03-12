@@ -1,42 +1,60 @@
 CREATE TABLE `auth_permission` (
-    `permission_id`  int(10) UNSIGNED NOT NULL AUTO_INCREMENT ,
-    `name`  varchar(32) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL ,
-    `description`  text CHARACTER SET utf8 COLLATE utf8_general_ci NULL ,
-    `added_on`  datetime NULL DEFAULT NULL ,
-    `updated_on`  datetime NULL DEFAULT NULL ,
+    `permission_id` INT(10) UNSIGNED        NOT NULL AUTO_INCREMENT,
+    `name`          VARCHAR(32)
+                    CHARACTER SET utf8
+                    COLLATE utf8_general_ci NOT NULL,
+    `description`   TEXT
+                    CHARACTER SET utf8
+                    COLLATE utf8_general_ci NULL,
+    `added_on`      DATETIME                NULL DEFAULT NULL,
+    `updated_on`    DATETIME                NULL DEFAULT NULL,
     PRIMARY KEY (`permission_id`),
     UNIQUE INDEX `uniq_perm` USING BTREE (`name`)
-) ENGINE=InnoDB;
+)
+    ENGINE = InnoDB;
 
 CREATE TABLE `auth_role` (
-    `role_id`  int(10) UNSIGNED NOT NULL AUTO_INCREMENT ,
-    `name`  varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL ,
-    `description`  text CHARACTER SET utf8 COLLATE utf8_general_ci NULL ,
-    `added_on`  datetime NULL DEFAULT NULL ,
-    `updated_on`  datetime NULL DEFAULT NULL ,
+    `role_id`     INT(10) UNSIGNED        NOT NULL AUTO_INCREMENT,
+    `name`        VARCHAR(255)
+                  CHARACTER SET utf8
+                  COLLATE utf8_general_ci NOT NULL,
+    `description` TEXT
+                  CHARACTER SET utf8
+                  COLLATE utf8_general_ci NULL,
+    `added_on`    DATETIME                NULL DEFAULT NULL,
+    `updated_on`  DATETIME                NULL DEFAULT NULL,
     PRIMARY KEY (`role_id`),
     UNIQUE INDEX `uniq_name` USING BTREE (`name`)
-) ENGINE=InnoDB;
+)
+    ENGINE = InnoDB;
 
-CREATE TABLE `auth_role_permission` (
-    `role_permission_id`  int(10) UNSIGNED NOT NULL AUTO_INCREMENT ,
-    `role_id`  int(10) UNSIGNED NOT NULL ,
-    `permission_id`  int(10) UNSIGNED NOT NULL ,
-    `added_on`  datetime NULL DEFAULT NULL ,
+CREATE TABLE `auth_role_permissions` (
+    `role_permission_id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+    `role_id`            INT(10) UNSIGNED NOT NULL,
+    `permission_id`      INT(10) UNSIGNED NOT NULL,
+    `added_on`           DATETIME         NULL DEFAULT NULL,
     PRIMARY KEY (`role_permission_id`),
-    FOREIGN KEY (`permission_id`) REFERENCES `auth_permission` (`permission_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY (`role_id`) REFERENCES `auth_role` (`role_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-    INDEX `fk_role` USING BTREE (`role_id`) ,
+    FOREIGN KEY (`permission_id`) REFERENCES `auth_permission` (`permission_id`)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    FOREIGN KEY (`role_id`) REFERENCES `auth_role` (`role_id`)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    INDEX `fk_role` USING BTREE (`role_id`),
     INDEX `fk_permission` USING BTREE (`permission_id`)
-) ENGINE=InnoDB;
+)
+    ENGINE = InnoDB;
 
 CREATE TABLE `auth_user_role` (
-    `user_role_id`  int(10) UNSIGNED NOT NULL AUTO_INCREMENT ,
-    `user_id`  int(10) UNSIGNED NOT NULL ,
-    `role_id`  int(10) UNSIGNED NOT NULL ,
+    `user_role_id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+    `user_id`      INT(10) UNSIGNED NOT NULL,
+    `role_id`      INT(10) UNSIGNED NOT NULL,
     PRIMARY KEY (`user_role_id`),
-    FOREIGN KEY (`role_id`) REFERENCES `auth_role` (`role_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-    UNIQUE INDEX `role_id` USING BTREE (`role_id`, `user_id`) ,
-    INDEX `fk_userid` USING BTREE (`user_id`) ,
+    FOREIGN KEY (`role_id`) REFERENCES `auth_role` (`role_id`)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    UNIQUE INDEX `role_id` USING BTREE (`role_id`, `user_id`),
+    INDEX `fk_userid` USING BTREE (`user_id`),
     INDEX `fk_roleid` USING BTREE (`role_id`)
-) ENGINE=InnoDB;
+)
+    ENGINE = InnoDB;

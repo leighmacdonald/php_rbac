@@ -15,10 +15,10 @@
 
     <php>
         <!-- The database will be created automatically if it doesn't exist, assuming the user has rights to -->
-        <var name="DB_DSN" value="mysql:host=localhost" />
-        <var name="DB_USER" value="user" />
-        <var name="DB_PASSWD" value="passwd" />
-        <var name="DB_DBNAME" value="rbac_test" />
+        <var name="DB_DSN" value="mysql:host=localhost"/>
+        <var name="DB_USER" value="root"/>
+        <var name="DB_PASSWD" value=""/>
+        <var name="DB_DBNAME" value="rbac_test"/>
     </php>
 
     <logging>

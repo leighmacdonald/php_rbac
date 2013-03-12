@@ -24,7 +24,7 @@ class RoleSet
      *
      * @param Role[] $roles Initial role data set to populate the class with
      */
-    public function __construct(array $roles)
+    public function __construct(array $roles = [])
     {
         foreach ($roles as $role) {
             $this->addRole($role);

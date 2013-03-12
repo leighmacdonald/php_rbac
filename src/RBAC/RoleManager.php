@@ -295,7 +295,7 @@ class RoleManager
     {
         $query = "
             SELECT
-                `name`, description, added_on, updated_on
+                role_id, `name`, description, added_on, updated_on
             FROM
                 auth_role
             WHERE
