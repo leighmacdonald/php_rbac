@@ -8,7 +8,7 @@ namespace RBAC\Role;
 /**
  * Class RoleSet
  *
- * Collection of roles assigned to a user
+ * Provides a wrapper around a collection of Roles
  *
  * @package Lanified\Auth
  */
@@ -19,6 +19,11 @@ class RoleSet
      */
     private $roles;
 
+    /**
+     * Setup the default data set
+     *
+     * @param Role[] $roles Initial role data set to populate the class with
+     */
     public function __construct(array $roles)
     {
         foreach ($roles as $role) {
@@ -26,6 +31,11 @@ class RoleSet
         }
     }
 
+    /**
+     * Add a new role to the role set
+     *
+     * @param Role $role
+     */
     public function addRole(Role $role)
     {
         $this->roles[] = $role;

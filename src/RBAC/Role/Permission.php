@@ -19,7 +19,7 @@ class Permission
     public $permission_id;
 
     /**
-     * @var string Name of the permission key
+     * @var string Unique name of the permission. This is used as its "key"
      */
     public $name;
 
@@ -28,6 +28,9 @@ class Permission
      */
     public $description;
 
+    /**
+     * @return string
+     */
     public function __toString()
     {
         return $this->name;

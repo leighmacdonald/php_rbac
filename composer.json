@@ -4,7 +4,7 @@
     "description": "An implementation of RBAC Level 2",
     "homepage": "https://github.com/leighmacdonald/php_rbac",
     "license": "MIT",
-    "keywords": ["authentication", "rbac", "database"],
+    "keywords": ["auth", "authentication", "rbac", "database"],
     "authors": [
         {
             "name": "Leigh MacDonald",

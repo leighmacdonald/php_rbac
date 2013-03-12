@@ -29,6 +29,14 @@ class RoleManager
      */
     protected $log;
 
+    /**
+     * Setup the required dependencies.
+     *
+     * The logger can be any PSR-3 compatible logger. Its highly recommended to use one.
+     *
+     * @param \PDO $db PDO Database connection
+     * @param \Psr\Log\LoggerInterface $logger optional logger instance
+     */
     public function __construct(PDO $db, LoggerInterface $logger = null)
     {
         $this->db = $db;
@@ -36,8 +44,10 @@ class RoleManager
     }
 
     /**
+     * Save a permission instance to the database.
+     *
      * @param Permission $permission
-     * @return bool
+     * @return bool Save execution status
      */
     public function permissionSave(Permission $permission)
     {
@@ -247,6 +257,8 @@ class RoleManager
     }
 
     /**
+     * Fetch all currently defined roles from the database.
+     *
      * @return Role[]
      */
     public function roleFetch()
@@ -272,7 +284,9 @@ class RoleManager
     }
 
     /**
-     * @param $role_name
+     * Fetch a role from the database via its unique name.
+     *
+     * @param string $role_name Role name
      * @return bool|Role
      */
     public function roleFetchByName($role_name)
@@ -300,6 +314,9 @@ class RoleManager
     }
 
     /**
+     *
+     * Fetch a role from the database via its role_id attribute.
+     *
      * If an array of role ids is given, an array of results will be returned.
      *
      * @param int|int[] $role_ids
@@ -342,31 +359,41 @@ class RoleManager
 
 
     /**
-     * Load a user instance with its roleset
+     * Load a user instance with its corresponding RoleSet
      *
-     * @param \RBAC\UserInterface $user
+     * @param \RBAC\UserInterface $user Initialized user instance
      * @return \RBAC\UserInterface
      */
     public function roleLoadUserRoles(UserInterface $user)
     {
-        // cache this.
-        $roles = $this->roleFetchUserRoles($user);
-        $role_set = new RoleSet($roles);
+        //todo cache this.
+        $role_set = new RoleSet($this->roleFetchUserRoles($user));
         $user->loadRoleSet($role_set);
         return $user;
     }
 
+    /**
+     * Fetch the roles that are associated with the user instance passed in.
+     *
+     * @param UserInterface $user Initialized user instance
+     * @return Role[] Roles the user has assigned
+     */
     private function roleFetchUserRoles(UserInterface $user)
     {
-        $cur = $this->db->prepare("SELECT role_id FROM auth_user_role WHERE user_id = :user_id");
+        $query = "
+            SELECT
+                role_id
+            FROM
+                auth_user_role
+            WHERE
+                user_id = :user_id
+        ";
+        $cur = $this->db->prepare($query);
         $cur->bindValue(":user_id", $user->id(), PDO::PARAM_INT);
         try {
             $cur->execute();
             $res = $cur->fetchAll(PDO::FETCH_ASSOC);
-            if (!$res) {
-                return [];
-            }
-            return $this->roleFetchById(array_values($res));
+            return ($res) ? $this->roleFetchById(array_values($res)) : [];
         } catch (PDOException $db_err) {
             if ($this->log) {
                 $this->log->error("Failed to fetch roles for user", ['exception' => $db_err]);
@@ -378,13 +405,18 @@ class RoleManager
     /**
      * Add a user to an existing role.
      *
-     * @param Role $role
-     * @param \RBAC\UserInterface $user
-     * @return bool
+     * @param Role $role Existing role to be added to
+     * @param \RBAC\UserInterface $user Initialized user instance
+     * @return bool Database execution success status
      */
     public function roleAddUser(Role $role, UserInterface $user)
     {
-        $query = "INSERT IGNORE INTO auth_user_role (user_id, role_id) VALUES (:user_id, :role_id)";
+        $query = "
+            INSERT IGNORE INTO
+                auth_user_role (user_id, role_id)
+            VALUES
+                (:user_id, :role_id)
+        ";
         $cur = $this->db->prepare($query);
         $cur->bindValue(":user_id", $user->id(), PDO::PARAM_INT);
         $cur->bindParam(":role_id", $role->role_id, PDO::PARAM_INT);
@@ -405,8 +437,8 @@ class RoleManager
     /**
      * Fetch all permissions associated with the role provided
      *
-     * @param Role $role
-     * @return array
+     * @param Role $role Initialized role to fetch permissions of
+     * @return Permission[] Permissions associated with the role
      */
     public function permissionFetchByRole(Role $role)
     {
@@ -436,7 +468,7 @@ class RoleManager
     /**
      * Load the full permission set into the role instance
      *
-     * @param Role $role
+     * @param Role $role Role to load permissions into
      * @return Role
      */
     private function roleLoadPermissions(Role $role)
