@@ -3,10 +3,11 @@
  * @package php_rbac
  * @author  Leigh MacDonald <leigh.macdonald@gmail.com>
  */
-namespace RBAC\Test;
+namespace RBAC\Test\Role;
 
 use RBAC\Role\RoleSet;
 use RBAC\Manager\RoleManager;
+use RBAC\Test\TestCase;
 
 class RoleSetTest extends TestCase
 {
