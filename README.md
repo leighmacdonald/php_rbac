@@ -56,4 +56,5 @@ Leigh MacDonald - <leigh.macdonald@gmail.com> - <http://cudd.li>
 
 License
 ------------------------------------------------
+
 php_rbac is licensed under the MIT License - see the [`LICENSE`](https://github.com/leighmacdonald/php_rbac/blob/master/LICENSE).
