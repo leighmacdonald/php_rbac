@@ -1,0 +1,29 @@
+{
+    "name": "leighmacdonald/php_rbac",
+    "type": "library",
+    "description": "An implementation of RBAC Level 2",
+    "homepage": "https://github.com/leighmacdonald/php_rbac",
+    "license": "MIT",
+    "keywords": ["authentication", "rbac", "database"],
+    "authors": [
+        {
+            "name": "Leigh MacDonald",
+            "email": "leigh.macdonald@gmail.com",
+            "homepage": "http://cudd.li",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.0",
+        "psr/log": "1.0.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "3.7.18",
+        "phpunit/dbunit": "1.2.*@dev"
+    },
+    "autoload": {
+        "psr-0": {
+            "RBAC": "src/"
+        }
+    }
+}
