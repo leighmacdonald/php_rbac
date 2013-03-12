@@ -6,7 +6,7 @@
 namespace RBAC\Test;
 
 use RBAC\Role\RoleSet;
-use RBAC\RoleManager;
+use RBAC\Manager\RoleManager;
 
 class RoleSetTest extends TestCase
 {

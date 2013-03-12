@@ -5,9 +5,10 @@
  */
 namespace RBAC\Test;
 
+use RBAC\Exception\ValidationError;
 use RBAC\Role\Permission;
 use RBAC\Role\Role;
-use RBAC\RoleManager;
+use RBAC\Manager\RoleManager;
 
 class RoleManagerTest extends TestCase
 {
@@ -16,6 +17,25 @@ class RoleManagerTest extends TestCase
         $this->getConnection();
         self::$db->query("TRUNCATE auth_role_permissions");
         parent::setUp();
+    }
+
+    public function testPermissionFetchById()
+    {
+        $rm = new RoleManager(self::$db);
+        $this->assertEquals(1, $rm->permissionFetchById(1)->permission_id);
+    }
+
+    public function testPermissionFetchByInvalidId()
+    {
+        $rm = new RoleManager(self::$db);
+        $this->assertFalse($rm->permissionFetchById(-1));
+    }
+
+    public function testPermissionFetch()
+    {
+        $count_pre = $this->getConnection()->getRowCount("auth_permission");
+        $rm = new RoleManager(self::$db);
+        $this->assertEquals($count_pre, sizeof($rm->permissionFetch()));
     }
 
     public function testPermissionSave()
@@ -43,7 +63,16 @@ class RoleManagerTest extends TestCase
         $this->assertEquals($count_pre - 1, $this->getConnection()->getRowCount("auth_permission"));
     }
 
-    public function testRoleCreate()
+    /**
+     * @expectedException \RBAC\Exception\ValidationError
+     */
+    public function testPermissionDeleteInvalidId()
+    {
+        $rm = new RoleManager(self::$db);
+        $rm->permissionDelete(new Permission());
+    }
+
+    public function testRoleSave()
     {
         $count_pre = $this->getConnection()->getRowCount("auth_role");
         $rm = new RoleManager(self::$db);
@@ -53,6 +82,9 @@ class RoleManagerTest extends TestCase
         $role->addPermission($read_perm);
         $role->addPermission($write_perm);
         $this->assertEquals(2, sizeof($role->getPermissions()));
+        $this->assertTrue($rm->roleSave($role));
+        $this->assertEquals($count_pre + 1, $this->getConnection()->getRowCount("auth_role"));
+        $role->name = "new_name";
         $this->assertTrue($rm->roleSave($role));
         $this->assertEquals($count_pre + 1, $this->getConnection()->getRowCount("auth_role"));
     }

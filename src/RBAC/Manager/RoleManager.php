@@ -3,7 +3,7 @@
  * @package php_rbac
  * @author  Leigh MacDonald <leigh.macdonald@gmail.com>
  */
-namespace RBAC;
+namespace RBAC\Manager;
 
 use PDO;
 use PDOException;
@@ -145,6 +145,9 @@ class RoleManager
      */
     public function permissionDelete(Permission $permission)
     {
+        if (!$permission->permission_id) {
+            throw new ValidationError("Permission is in an invalid state");
+        }
         $cur = $this->db->prepare("DELETE FROM auth_permission WHERE permission_id = :pid");
         $cur->bindParam(":pid", $permission->permission_id, PDO::PARAM_INT);
         $this->db->beginTransaction();
@@ -169,17 +172,28 @@ class RoleManager
      */
     public function roleSave(Role $role)
     {
-        $query = "
-            INSERT INTO auth_role
-                (name, description, added_on, updated_on) VALUES(:name, :description, NOW(), NOW())
-            ON DUPLICATE KEY UPDATE
-                name = :name, description = :description, updated_on = NOW()
-        ";
+        if ($role->role_id) {
+            $query = "
+                UPDATE
+                    auth_role
+                SET
+                    `name` = :name, description = :description, updated_on = NOW()
+                WHERE
+                    role_id = :role_id
+            ";
+        } else {
+            $query = "
+                INSERT INTO auth_role
+                    (name, description, added_on, updated_on)
+                VALUES
+                    (:name, :description, NOW(), NOW())
+            ";
+        }
         $cur = $this->db->prepare($query);
         $cur->bindParam(":name", $role->name, PDO::PARAM_STR, 32);
         $cur->bindParam(":description", $role->description, PDO::PARAM_STR);
         if ($role->role_id) {
-            $cur->bindParam(":id", $role->role_id, PDO::PARAM_INT);
+            $cur->bindParam(":role_id", $role->role_id, PDO::PARAM_INT);
         }
         $this->db->beginTransaction();
         try {
