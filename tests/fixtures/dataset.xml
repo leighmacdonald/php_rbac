@@ -59,7 +59,7 @@
         </row>
     </table>
 
-    <table name="auth_role_permission">
+    <table name="auth_role_permissions">
         <column>role_permission_id</column>
         <column>role_id</column>
         <column>permission_id</column>
