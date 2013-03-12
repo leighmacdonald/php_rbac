@@ -12,7 +12,9 @@ use PHPUnit_Extensions_Database_DataSet_IDataSet;
 class TestCase extends PHPUnit_Extensions_Database_TestCase
 {
 
-    // only instantiate pdo once for test clean-up/fixture load
+    /**
+     * @var PDO
+     */
     static protected $db = null;
 
     // only instantiate PHPUnit_Extensions_Database_DB_IDatabaseConnection once per test
@@ -45,6 +47,16 @@ class TestCase extends PHPUnit_Extensions_Database_TestCase
         }
 
         return $this->conn;
+    }
+
+    public function getSetUpOperation()
+    {
+        $cascadeTruncates = true; // If you want cascading truncates, false otherwise. If unsure choose false.
+
+        return new \PHPUnit_Extensions_Database_Operation_Composite(array(
+            new TruncateOperation($cascadeTruncates),
+            \PHPUnit_Extensions_Database_Operation_Factory::INSERT()
+        ));
     }
 
     /**

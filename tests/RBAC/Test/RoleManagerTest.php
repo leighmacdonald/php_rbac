@@ -11,6 +11,13 @@ use RBAC\RoleManager;
 
 class RoleManagerTest extends TestCase
 {
+    public function setUp()
+    {
+        $this->getConnection();
+        self::$db->query("TRUNCATE auth_role");
+        parent::setUp();
+    }
+
     public function testPermissionCreate()
     {
         $count_pre = $this->getConnection()->getRowCount("auth_permission");
@@ -19,6 +26,7 @@ class RoleManagerTest extends TestCase
         $this->assertTrue($rm->permissionSave($perm));
         $this->assertEquals($count_pre + 1, $this->getConnection()->getRowCount("auth_permission"));
         $this->assertTrue($perm->permission_id > 0);
+        $this->assertTrue($rm->permissionDelete($perm));
     }
 
     public function testPermissionDelete()
