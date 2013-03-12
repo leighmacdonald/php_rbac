@@ -21,6 +21,8 @@ Installation / Usage
     }
     ```
 
+2. `composer update`
+
 TODO
 ------------------------------------------------
 
@@ -34,6 +36,16 @@ If you wish to contribute, please make sure the following criteria are met:
 1. Your code conforms to PSR specifications.
 2. All code additions should include test cases. (if applicable).
 3. The test suite passes.
+
+PHPUnit Tests
+----------------------------
+
+There is a example phpunit config file that should be edited before running. Notably
+you should change the default database parameters.
+
+1. Install the composer dev dependencies: `composer update --dev`
+2. Run phpunit: `./vendor/bin/phpunit`
+
 
 Authors
 ---------------------------
