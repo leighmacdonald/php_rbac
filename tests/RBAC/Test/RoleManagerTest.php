@@ -18,7 +18,7 @@ class RoleManagerTest extends TestCase
         parent::setUp();
     }
 
-    public function testPermissionCreate()
+    public function testPermissionSave()
     {
         $count_pre = $this->getConnection()->getRowCount("auth_permission");
         $rm = new RoleManager(self::$db);
@@ -26,7 +26,11 @@ class RoleManagerTest extends TestCase
         $this->assertTrue($rm->permissionSave($perm));
         $this->assertEquals($count_pre + 1, $this->getConnection()->getRowCount("auth_permission"));
         $this->assertTrue($perm->permission_id > 0);
-        $this->assertTrue($rm->permissionDelete($perm));
+        $perm->name = "test_perm2";
+        $this->assertTrue($rm->permissionSave($perm));
+        $this->assertEquals($count_pre + 1, $this->getConnection()->getRowCount("auth_permission"));
+        $perm_fetched = $rm->permissionFetchById($perm->permission_id);
+        $this->assertEquals($perm_fetched->permission_id, $perm->permission_id);
     }
 
     public function testPermissionDelete()
@@ -64,4 +68,5 @@ class RoleManagerTest extends TestCase
         $this->assertEquals($count_pre - 1, $this->getConnection()->getRowCount("auth_role"));
         $this->assertFalse($rm->roleFetchByName("admin_read"));
     }
+
 }

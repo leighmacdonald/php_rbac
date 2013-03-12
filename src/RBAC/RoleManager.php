@@ -51,21 +51,37 @@ class RoleManager
      */
     public function permissionSave(Permission $permission)
     {
-        $query = "
-            INSERT INTO
-                auth_permission (`name`, description, updated_on, added_on)
-            VALUES
-                (:name, :description, NOW(), NOW())
-            ON DUPLICATE KEY UPDATE
-              name = :name, description = :description, updated_on = NOW()
-        ";
+        if ($permission->permission_id) {
+            $query = "
+                UPDATE
+                    auth_permission
+                SET
+                    `name` = :name, description = :description, updated_on = NOW()
+                WHERE
+                    permission_id = :permission_id
+            ";
+        } else {
+            $query = "
+                INSERT INTO
+                    auth_permission (`name`, description, updated_on, added_on)
+                VALUES
+                    (:name, :description, NOW(), NOW())
+                ON DUPLICATE KEY UPDATE
+                  name = :name, description = :description, updated_on = NOW()
+            ";
+        }
         $cur = $this->db->prepare($query);
         $cur->bindParam(":name", $permission->name, PDO::PARAM_STR, 32);
         $cur->bindParam(":description", $permission->description, PDO::PARAM_STR);
+        if ($permission->permission_id) {
+            $cur->bindParam(":permission_id", $permission->permission_id, PDO::PARAM_INT);
+        }
         $this->db->beginTransaction();
         try {
             $cur->execute();
-            $permission->permission_id = $this->db->lastInsertId();
+            if (!$permission->permission_id) {
+                $permission->permission_id = $this->db->lastInsertId();
+            }
             $this->db->commit();
         } catch (PDOException $db_err) {
             $this->db->rollBack();
@@ -201,8 +217,10 @@ class RoleManager
             throw new ValidationError("Invalid Role/Permission state");
         }
         $query = "
-            INSERT INTO auth_role_permissions (role_id, permission_id, added_on)
-            VALUES (:role_id, :permission_id, NOW())
+            INSERT INTO
+                auth_role_permissions (role_id, permission_id, added_on)
+            VALUES
+                (:role_id, :permission_id, NOW())
         ";
         $cur = $this->db->prepare($query);
         $cur->bindParam(":role_id", $role->role_id, PDO::PARAM_INT);
