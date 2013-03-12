@@ -1,6 +1,8 @@
 php_rbac - RBAC Level 2 Implementation
 =======================================================
 
+[![Build Status](https://travis-ci.org/leighmacdonald/php_rbac.png)](https://travis-ci.org/leighmacdonald/php_rbac)
+
 This library aims to provide a modern PHP based RBAC (Role-Based Access Control) implementation.
 
 For more information about RBAC please see the following links:
