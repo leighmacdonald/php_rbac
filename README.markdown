@@ -23,7 +23,9 @@ Installation / Usage
     }
     ```
 
-2. `composer update`
+2. If you are just using the lib: `composer update`. If you are developing against the lib: `composer update --dev`
+
+3. Check out the [docs](https://github.com/leighmacdonald/php_rbac/docs) folder for more information.
 
 TODO
 ------------------------------------------------
