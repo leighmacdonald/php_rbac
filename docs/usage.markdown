@@ -16,7 +16,7 @@ library most likely.
 - [`RoleManager`](https://github.com/leighmacdonald/php_rbac/blob/master/src/RBAC/Manager/RoleManager.php) The
  management class which takes care of: Talking to the datastore / Creating / Updating of roles and permissions.
 
-## Creating an assignable permission
+## Creating and updating an assignable permission
 
 This demonstrates creating a new permission in the database.
 
@@ -33,11 +33,14 @@ $perm = Permission::create("admin_view", "Allows viewing of the admin section");
 $role_mgr = new RoleManager(new PDO("..."));
 
 // Save the permission to persistant storage
-if ($role_mgr->permissionSave($perm)) {
-    // Saved successfully;
-    // The $perm should have the permission_id now set
-} else {
+if (!$role_mgr->permissionSave($perm)) {
     // Failed to save permission record.
+}
+
+// Demonstrates updating an existing Permission
+$perm->name = "admin_load";
+if (!$role_mgr->permissionSave($perm)) {
+    // Handle Error
 }
 ?>
 ```

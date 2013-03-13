@@ -10,6 +10,7 @@ use RBAC\Role\Permission;
 use RBAC\Role\Role;
 use RBAC\Manager\RoleManager;
 use RBAC\Test\DBTestCase;
+use RBAC\Test\Mock\MockUser;
 
 class RoleManagerTest extends DBTestCase
 {
@@ -120,6 +121,11 @@ class RoleManagerTest extends DBTestCase
         $this->assertEquals($count_pre + 1, $this->getConnection()->getRowCount("auth_role"));
     }
 
+    public function testRoleSaveDBErr()
+    {
+        $this->assertFalse($this->getMockManager()->roleSave(Role::create("test_role")));
+    }
+
     public function testRoleDelete()
     {
         $role = Role::create("test_role");
@@ -131,4 +137,129 @@ class RoleManagerTest extends DBTestCase
         $this->assertFalse($this->rm->roleFetchByName("admin_read"));
     }
 
+    /**
+     * @expectedException \RBAC\Exception\ValidationError
+     */
+    public function testRoleDeleteInvalidRole()
+    {
+        $this->getMockManager()->roleDelete(Role::create("invalid_role"));
+    }
+
+    public function testRoleDeleteDBErr()
+    {
+        $this->assertFalse($this->getMockManager()->roleDelete($this->generateRole()));
+    }
+
+    /**
+     * @expectedException \RBAC\Exception\ValidationError
+     */
+    public function testRolePermissionAddInvalidPerm()
+    {
+        $this->rm->rolePermissionAdd($this->generateRole(), Permission::create("blah"));
+    }
+
+    /**
+     * @expectedException \RBAC\Exception\ValidationError
+     */
+    public function testRolePermissionAddInvalidRole()
+    {
+        $this->rm->rolePermissionAdd(Role::create("blah"), $this->generatePerm());
+    }
+
+    public function testRolePermissionAddDBErr()
+    {
+        $this->assertFalse($this->getMockManager()->rolePermissionAdd($this->generateRole(), $this->generatePerm()));
+    }
+
+    public function testRoleFetch()
+    {
+        $roles = $this->getConnection()->getRowCount("auth_role");
+        $this->assertEquals($roles, sizeof($this->rm->roleFetch()));
+    }
+
+    public function testRoleFetchDBErr()
+    {
+        $this->assertEquals([], $this->getMockManager()->roleFetch());
+    }
+
+    public function testRoleFetchByName()
+    {
+        $name = "admin";
+        $admin = $this->rm->roleFetchByName($name);
+        $this->assertEquals($name, $admin->name);
+    }
+
+    public function testRoleFetchByNameDBErr()
+    {
+        $this->assertFalse($this->getMockManager()->roleFetchByName("admin"));
+    }
+
+    public function testRoleFetchById()
+    {
+        $role = $this->rm->roleFetchById(1);
+        $this->assertEquals(1, $role->role_id);
+
+        $roles = $this->rm->roleFetchById([1, 2]);
+        $this->assertEquals(2, sizeof($roles));
+    }
+
+    public function testRoleFetchByIdDBErr()
+    {
+        $this->assertEquals(false, $this->getMockManager()->roleFetchById(1));
+        $this->assertEquals([], $this->getMockManager()->roleFetchById([1, 2]));
+        $this->assertEquals(false, $this->getMockManager()->roleFetchById(null));
+        $this->assertEquals([], $this->getMockManager()->roleFetchById([]));
+    }
+
+    public function testRoleLoadUserRoles()
+    {
+        $admin = new MockUser(1);
+        $this->assertEquals(0, sizeof($admin->getRoleSet()->getRoles()));
+        $this->rm->roleLoadUserRoles($admin);
+        $this->assertEquals(1, sizeof($admin->getRoleSet()->getRoles()));
+    }
+
+    public function testRoleFetchUserRolesDBErr()
+    {
+        $this->assertEquals([], $this->getMockManager()->roleFetchUserRoles(new MockUser(1)));
+    }
+
+    public function testRoleAddUser()
+    {
+        $role = $this->rm->roleFetchById(1);
+        $this->assertTrue($this->rm->roleSave($role));
+        $user = new MockUser(99);
+        $initial_role_count = sizeof($user->getRoleSet()->getRoles());
+        $this->assertTrue($this->rm->roleAddUser($role, $user));
+        $this->assertEquals($initial_role_count + 1, sizeof($user->getRoleSet()->getRoles()));
+    }
+
+    public function testRoleAddUserDBErr()
+    {
+        $this->assertFalse($this->getMockManager()->roleAddUser($this->generateRole(), new MockUser(99)));
+
+    }
+
+    /**
+     * @expectedException \RBAC\Exception\ValidationError
+     */
+    public function testRoleAddUserIdInvalidId()
+    {
+        $this->rm->roleAddUserId($this->generateRole(), null);
+    }
+
+    public function testRoleAddUserIdDBErr()
+    {
+        $this->assertFalse($this->getMockManager()->roleAddUserId($this->generateRole(), 1));
+    }
+
+    public function testPermissionFetchByRole()
+    {
+        $this->assertEquals([], $this->getMockManager()->permissionFetchByRole($this->generateRole()));
+    }
+
+    public function testRoleFetchUserRolesEmpty()
+    {
+        $this->assertEquals([], $this->rm->roleFetchUserRoles(new MockUser(99)));
+    }
 }

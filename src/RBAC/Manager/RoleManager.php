@@ -366,6 +366,9 @@ class RoleManager
     public function roleFetchById($role_ids)
     {
         $multi = is_array($role_ids);
+        if (!$role_ids) {
+            return ($multi) ? [] : false;
+        }
         $role_ids = (array) $role_ids;
         if ($multi) {
             $in_query = join(",", array_fill(0, count($role_ids), "?"));
@@ -375,7 +378,7 @@ class RoleManager
                 FROM
                     auth_role
                 WHERE
-                    role_id IN('{$in_query}')";
+                    role_id IN({$in_query})";
         } else {
             $query = "
                 SELECT
@@ -407,7 +410,7 @@ class RoleManager
             if ($this->log) {
                 $this->log->error("Failed executing fetch role by id query", ['exception' => $db_err]);
             }
-            return false;
+            return ($multi) ? [] : false;
         }
     }
 
@@ -432,7 +435,7 @@ class RoleManager
      * @param UserInterface $user Initialized user instance
      * @return Role[] Roles the user has assigned
      */
-    private function roleFetchUserRoles(UserInterface $user)
+    public function roleFetchUserRoles(UserInterface $user)
     {
         $query = "
             SELECT
@@ -446,8 +449,19 @@ class RoleManager
         $cur->bindValue(":user_id", $user->id(), PDO::PARAM_INT);
         try {
             $cur->execute();
-            $res = $cur->fetchAll(PDO::FETCH_ASSOC);
-            return ($res) ? $this->roleFetchById(array_values($res)) : [];
+            $res = $cur->fetchAll(PDO::FETCH_OBJ);
+            if (!$res) {
+                return [];
+            } else {
+                $role_ids = array_map(
+                    function ($row) {
+                        return $row->role_id;
+                    },
+                    $res
+                );
+                $roles = $this->roleFetchById($role_ids);
+                return $roles;
+            }
         } catch (PDOException $db_err) {
             if ($this->log) {
                 $this->log->error("Failed to fetch roles for user", ['exception' => $db_err]);
@@ -457,7 +471,8 @@ class RoleManager
     }
 
     /**
-     * Add a user to an existing role.
+     * Add a user to an existing role. This will insert the added role into the users active RoleSet
+     * instance upon successful insertion into the database
      *
      * @param Role $role Existing role to be added to
      * @param \RBAC\UserInterface $user Initialized user instance
@@ -465,7 +480,14 @@ class RoleManager
      */
     public function roleAddUser(Role $role, UserInterface $user)
     {
-        return $this->roleAddUserId($role, $user->id());
+        if ($this->roleAddUserId($role, $user->id())) {
+            $users_role_set = $user->getRoleSet();
+            $users_role_set->addRole($role);
+            $user->loadRoleSet($users_role_set);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**

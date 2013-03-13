@@ -22,7 +22,12 @@ interface UserInterface
     /**
      * Load the users RoleSet defining what the user has access to
      *
-     * @param Role\RoleSet $role_set
+     * @param \RBAC\Role\RoleSet $role_set
      */
     public function loadRoleSet(RoleSet $role_set);
+
+    /**
+     * @return \RBAC\Role\RoleSet
+     */
+    public function getRoleSet();
 }

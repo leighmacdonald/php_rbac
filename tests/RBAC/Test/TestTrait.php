@@ -6,6 +6,7 @@
 namespace RBAC\Test;
 
 use RBAC\Role\Permission;
+use RBAC\Role\Role;
 use RBAC\Test\Mock\MockLogger;
 use RBAC\Test\Mock\MockPDO;
 use RBAC\Test\Mock\MockPDOStatement;
@@ -15,7 +16,8 @@ use RBAC\Test\Mock\MockPDOStatement;
  */
 trait TestTrait
 {
-    protected $current_perm_num = 0;
+    protected $current_perm_num = 10;
+    protected $current_role_num = 10;
 
     /**
      * Get the root path of the project tree
@@ -35,6 +37,16 @@ trait TestTrait
         $perm = Permission::create($name);
         $perm->permission_id = ++$this->current_perm_num;
         return $perm;
+    }
+
+    public function generateRole($name = false, $desc = "blah desc")
+    {
+        if (!$name) {
+            $name = "role_{$this->current_role_num}";
+        }
+        $role = Role::create($name, $desc);
+        $role->role_id = ++$this->current_role_num;
+        return $role;
     }
 
     protected function getMockDB($throw = true)
