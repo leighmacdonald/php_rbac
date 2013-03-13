@@ -5,23 +5,12 @@
  */
 namespace RBAC\Manager;
 
-use PDO;
-use Psr\Log\LoggerInterface;
 use RBAC\Manager\RoleManager;
 
 class APCRoleManager extends RoleManager
 {
     const DEFAULT_TTL = 300;
     const KEY_SEP = "_";
-
-    public function __construct(PDO $db, LoggerInterface $logger = null)
-    {
-        if (!function_exists('\apc_add')) {
-            throw new \BadFunctionCallException("APC not found");
-        }
-        $this->db = $db;
-        $this->log = $logger;
-    }
 
     public function permissionFetchById($permission_id)
     {
@@ -30,7 +19,7 @@ class APCRoleManager extends RoleManager
         if (!$permission) {
             $permission = parent::permissionFetchById($permission_id);
             if ($permission) {
-                apc_store("perm_{$permission_id}");
+                apc_store("perm_{$permission_id}", $permission, self::DEFAULT_TTL);
             }
         }
         return $permission;

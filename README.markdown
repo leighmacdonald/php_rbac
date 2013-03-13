@@ -25,12 +25,16 @@ Installation / Usage
 
 2. If you are just using the lib: `composer update`. If you are developing against the lib: `composer update --dev`
 
-3. Check out the [docs](https://github.com/leighmacdonald/php_rbac/tree/master/docs) folder for more information.
+3. Check out the [docs](https://github.com/leighmacdonald/php_rbac/tree/master/docs) folder for usage examples and
+ other information.
 
 TODO
 ------------------------------------------------
 
 - NIST Level 2, Currently only level 1 is implemented.
+- Cached implementation using:
+    - Memcache
+    - APC
 
 Contributing
 ------------------------------------------------

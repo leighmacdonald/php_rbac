@@ -67,8 +67,6 @@ class RoleManager
                     auth_permission (`name`, description, updated_on, added_on)
                 VALUES
                     (:name, :description, NOW(), NOW())
-                ON DUPLICATE KEY UPDATE
-                  name = :name, description = :description, updated_on = NOW()
             ";
         }
         $cur = $this->db->prepare($query);
@@ -124,7 +122,8 @@ class RoleManager
     }
 
     /**
-     * @internal param $permission_id
+     * Fetch an array of all the permissions that exist in the database
+     *
      * @return Permission[]
      */
     public function permissionFetch()
@@ -146,6 +145,8 @@ class RoleManager
     }
 
     /**
+     * Delete a permission from the database
+     *
      * @param Permission $permission
      * @throws \RBAC\Exception\ValidationError
      * @return bool
