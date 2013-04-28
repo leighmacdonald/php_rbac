@@ -9,13 +9,13 @@
          stderr="true">
     <testsuites>
         <testsuite name="php_rbac Test Suite">
-            <directory suffix="Test.php">./tests/RBAC</directory>
+            <directory suffix="Test.php">./tests/RBAC/Test</directory>
         </testsuite>
     </testsuites>
 
     <php>
         <!-- The database will be created automatically if it doesn't exist, assuming the user has rights to -->
-        <var name="DB_DSN" value="mysql:host=localhost;charset=UTF-8"/>
+        <var name="DB_DSN" value="mysql:host=localhost;charset=utf8"/>
         <var name="DB_USER" value="root"/>
         <var name="DB_PASSWD" value=""/>
         <var name="DB_DBNAME" value="rbac_test"/>
@@ -31,7 +31,7 @@
 
     <filter>
         <whitelist addUncoveredFilesFromWhitelist="true">
-            <directory suffix=".php">./src/RBAC/</directory>
+            <directory suffix=".php">../src/RBAC/</directory>
             <exclude>
                 <directory>vendor</directory>
             </exclude>
