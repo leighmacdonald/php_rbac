@@ -10,7 +10,7 @@ use RBAC\Role\RoleSet;
 /**
  * To be able to associate your users with roles you must define the following minimal interface
  */
-interface UserInterface
+interface SubjectInterface
 {
     /**
      * This should return the unsigned unique ID of the user instance.

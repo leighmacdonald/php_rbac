@@ -6,9 +6,9 @@
 namespace RBAC\Test\Mock;
 
 use RBAC\Role\RoleSet;
-use RBAC\UserInterface;
+use RBAC\SubjectInterface;
 
-class MockUser implements UserInterface
+class MockUser implements SubjectInterface
 {
     private $user_id;
 

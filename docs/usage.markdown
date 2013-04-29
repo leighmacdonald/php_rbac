@@ -79,7 +79,7 @@ if ($role_mgr->roleSave($role)) {
 
 There are several methods for acheiving this.
 
-- Implementing the [`UserInterface`](https://github.com/leighmacdonald/php_rbac/blob/master/src/RBAC/UserInterface.php)
+- Implementing the [`SubjectInterface`](https://github.com/leighmacdonald/php_rbac/blob/master/src/RBAC/SubjectInterface.php)
  interface with your own projects classes. `RoleManager->roleAddUser($your_user_class);`
 - Passing in your unique user ID using `RoleManager->roleAddUserId($your_user_id);`
 
