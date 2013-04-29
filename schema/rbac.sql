@@ -21,6 +21,8 @@ CREATE TABLE `auth_role` (
     `description` TEXT
                   CHARACTER SET utf8
                   COLLATE utf8_general_ci NULL,
+    `lft`         INT(10) UNSIGNED        NOT NULL,
+    `rgt`         INT(10) UNSIGNED        NOT NULL,
     `added_on`    DATETIME                NULL DEFAULT NULL,
     `updated_on`  DATETIME                NULL DEFAULT NULL,
     PRIMARY KEY (`role_id`),

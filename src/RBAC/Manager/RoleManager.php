@@ -7,15 +7,19 @@ namespace RBAC\Manager;
 
 use PDO;
 use PDOException;
+use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use RBAC\Exception\ValidationError;
 use RBAC\Role\Permission;
 use RBAC\Role\Role;
 use RBAC\Role\RoleSet;
-use RBAC\UserInterface;
+use RBAC\SubjectInterface;
 
-class RoleManager
+class RoleManager implements LoggerAwareInterface
 {
+    /**
+     * Role class  created by
+     */
     const CLASS_ROLE = '\RBAC\Role\Role';
 
     const CLASS_PERMISSION = '\RBAC\Role\Permission';
@@ -28,7 +32,7 @@ class RoleManager
     /**
      * @var \Psr\Log\LoggerInterface
      */
-    protected $log;
+    protected $logger;
 
     /**
      * Setup the required dependencies.
@@ -41,7 +45,21 @@ class RoleManager
     public function __construct(PDO $db, LoggerInterface $logger = null)
     {
         $this->db = $db;
-        $this->log = $logger;
+        if ($logger) {
+            $this->setLogger($logger);
+        }
+    }
+
+
+    /**
+     * Sets a logger instance on the object
+     *
+     * @param LoggerInterface $logger
+     * @return null
+     */
+    public function setLogger(LoggerInterface $logger)
+    {
+        $this->logger = $logger;
     }
 
     /**
@@ -50,7 +68,7 @@ class RoleManager
      * @param Permission $permission
      * @return bool Save execution status
      */
-    public function permissionSave(Permission $permission)
+    public function permissionSave(Permission $permission, Permission $parent = null)
     {
         if ($permission->permission_id) {
             $query = "
@@ -84,8 +102,8 @@ class RoleManager
             $this->db->commit();
         } catch (PDOException $db_err) {
             $this->db->rollBack();
-            if ($this->log) {
-                $this->log->error("Failed to create/update permission", ['exception' => $db_err]);
+            if ($this->logger) {
+                $this->logger->error("Failed to create/update permission", ['exception' => $db_err]);
             }
             return false;
         }
@@ -114,8 +132,8 @@ class RoleManager
             $cur->execute();
             return $cur->fetchObject(self::CLASS_PERMISSION);
         } catch (PDOException $db_err) {
-            if ($this->log) {
-                $this->log->error("Error trying to fetch permission by ID", ['exception' => $db_err]);
+            if ($this->logger) {
+                $this->logger->error("Error trying to fetch permission by ID", ['exception' => $db_err]);
             }
             return false;
         }
@@ -139,7 +157,7 @@ class RoleManager
         try {
             return $this->db->query($query)->fetchAll(PDO::FETCH_CLASS, self::CLASS_PERMISSION);
         } catch (PDOException $db_err) {
-            $this->log->error("Database error trying to fetch permissions", ['exception' => $db_err]);
+            $this->logger->error("Database error trying to fetch permissions", ['exception' => $db_err]);
             return [];
         }
     }
@@ -164,8 +182,95 @@ class RoleManager
             $this->db->commit();
         } catch (PDOException $db_err) {
             $this->db->rollBack();
-            if ($this->log) {
-                $this->log->error("Failed to delete permission", ['exception' => $db_err]);
+            if ($this->logger) {
+                $this->logger->error("Failed to delete permission", ['exception' => $db_err]);
+            }
+            return false;
+        }
+        return true;
+    }
+
+    public function roleInsertSibling(Role $role, Role $sibling_role)
+    {
+        $query_a = "UPDATE auth_role SET rgt = rgt + 2 WHERE rgt > :rgt";
+
+        $this->db->beginTransaction();
+        $cur = $this->db->prepare($query_a);
+        $cur->bindValue(":rgt", $sibling_role->rgt, PDO::PARAM_INT);
+        $cur->execute();
+        $this->db->commit();
+
+        $query_b = "UPDATE auth_role SET lft = lft + 2 WHERE lft > :rgt";
+        $this->db->beginTransaction();
+        $cur = $this->db->prepare($query_b);
+        $cur->bindValue(":rgt", $sibling_role->rgt, PDO::PARAM_INT);
+        $cur->execute();
+        $this->db->commit();
+
+        $query_c = "INSERT INTO auth_role (`name`, description, lft, rgt) VALUES (:name, :descr, :rgt+1, :rgt+2)";
+        $this->db->beginTransaction();
+        $cur = $this->db->prepare($query_c);
+        $cur->bindValue(":rgt", $sibling_role->rgt, PDO::PARAM_INT);
+        $cur->bindParam(":name", $role->name, PDO::PARAM_STR);
+        $cur->bindParam(":descr", $role->description, PDO::PARAM_STR);
+        $cur->execute();
+        $this->db->commit();
+        return true;
+    }
+
+    public function roleInsertChild(Role $role, Role $parent_role)
+    {
+        $query_a = "UPDATE auth_role SET rgt = rgt + 2 WHERE rgt > :lft";
+
+        $this->db->beginTransaction();
+        $cur = $this->db->prepare($query_a);
+        $cur->bindValue(":lft", $parent_role->lft, PDO::PARAM_INT);
+        $cur->execute();
+        $this->db->commit();
+
+        $query_b = "UPDATE auth_role SET lft = lft + 2 WHERE lft > :lft";
+        $this->db->beginTransaction();
+        $cur = $this->db->prepare($query_b);
+        $cur->bindValue(":lft", $parent_role->lft, PDO::PARAM_INT);
+        $cur->execute();
+        $this->db->commit();
+
+        $query_c = "INSERT INTO auth_role (`name`, description, lft, rgt) VALUES (:name, :descr, :lft+1, :lft+2)";
+        $this->db->beginTransaction();
+        $cur = $this->db->prepare($query_c);
+        $cur->bindValue(":lft", $parent_role->lft, PDO::PARAM_INT);
+        $cur->bindParam(":name", $role->name, PDO::PARAM_STR);
+        $cur->bindParam(":descr", $role->description, PDO::PARAM_STR);
+        $cur->execute();
+        $this->db->commit();
+        return true;
+    }
+
+    public function roleCreate(Role $role, Role $parent)
+    {
+
+        try {
+
+            $this->db->beginTransaction();
+            $cur = $this->db->prepare($query_c);
+            $cur->bindParam(":name", $role->name, PDO::PARAM_STR, 32);
+            $cur->bindParam(":description", $role->description, PDO::PARAM_STR);
+            $cur->bindValue(":lft", $lft + 1, PDO::PARAM_INT);
+            $cur->bindValue(":rgt", $rgt + 1, PDO::PARAM_INT);
+            if ($role->role_id) {
+                $cur->bindParam(":role_id", $role->role_id, PDO::PARAM_INT);
+            }
+            $cur->execute();
+            if (!$role->role_id) {
+                $role->role_id = (int)$this->db->lastInsertId();
+            }
+            $this->db->commit();
+            $role->lft = $lft + 1;
+            $role->rgt = $rgt + 1;
+        } catch (PDOException $db_err) {
+            $this->db->rollBack();
+            if ($this->logger) {
+                $this->logger->error("Failed to save role to DB", ['exception' => $db_err]);
             }
             return false;
         }
@@ -207,13 +312,13 @@ class RoleManager
         try {
             $cur->execute();
             if (!$role->role_id) {
-                $role->role_id = (int) $this->db->lastInsertId();
+                $role->role_id = (int)$this->db->lastInsertId();
             }
             $this->db->commit();
         } catch (PDOException $db_err) {
             $this->db->rollBack();
-            if ($this->log) {
-                $this->log->error("Failed to save role to DB", ['exception' => $db_err]);
+            if ($this->logger) {
+                $this->logger->error("Failed to save role to DB", ['exception' => $db_err]);
             }
             return false;
         }
@@ -253,8 +358,8 @@ class RoleManager
             $this->db->commit();
         } catch (PDOException $db_err) {
             $this->db->rollBack();
-            if ($this->log) {
-                $this->log->error("Failed to add permission to role", ['exception' => $db_err]);
+            if ($this->logger) {
+                $this->logger->error("Failed to add permission to role", ['exception' => $db_err]);
             }
             return false;
         }
@@ -291,8 +396,8 @@ class RoleManager
             return true;
         } catch (PDOException $db_err) {
             $this->db->rollBack();
-            if ($this->log) {
-                $this->log->error("Failed deleting role", ['exception' => $db_err]);
+            if ($this->logger) {
+                $this->logger->error("Failed deleting role", ['exception' => $db_err]);
             }
         }
         return false;
@@ -307,15 +412,15 @@ class RoleManager
     {
         $query = "
             SELECT
-                role_id, `name`, description, added_on, updated_on
+                role_id, `name`, description, lft, rgt, added_on, updated_on
             FROM
                 auth_role
         ";
         try {
             $roles = $this->db->query($query)->fetchAll(PDO::FETCH_CLASS, self::CLASS_ROLE);
         } catch (PDOException $db_err) {
-            if ($this->log) {
-                $this->log->error("Failed executing fetch roles", ['exception' => $db_err]);
+            if ($this->logger) {
+                $this->logger->error("Failed executing fetch roles", ['exception' => $db_err]);
             }
             return [];
         }
@@ -335,7 +440,7 @@ class RoleManager
     {
         $query = "
             SELECT
-                role_id, `name`, description, added_on, updated_on
+                role_id, `name`, description, lft, rgt, added_on, updated_on
             FROM
                 auth_role
             WHERE
@@ -348,8 +453,8 @@ class RoleManager
             $role = $cur->fetchObject(self::CLASS_ROLE);
             return ($role) ? $this->roleLoadPermissions($role) : false;
         } catch (PDOException $db_err) {
-            if ($this->log) {
-                $this->log->error("Failed executing fetch role by name query", ['exception' => $db_err]);
+            if ($this->logger) {
+                $this->logger->error("Failed executing fetch role by name query", ['exception' => $db_err]);
             }
             return false;
         }
@@ -370,12 +475,12 @@ class RoleManager
         if (!$role_ids) {
             return ($multi) ? [] : false;
         }
-        $role_ids = (array) $role_ids;
+        $role_ids = (array)$role_ids;
         if ($multi) {
             $in_query = join(",", array_fill(0, count($role_ids), "?"));
             $query = "
                 SELECT
-                    role_id, `name`, description, added_on, updated_on
+                    role_id, `name`, description, lft, rgt, added_on, updated_on
                 FROM
                     auth_role
                 WHERE
@@ -383,7 +488,7 @@ class RoleManager
         } else {
             $query = "
                 SELECT
-                  role_id, `name`, description, added_on, updated_on
+                  role_id, `name`, description, lft, rgt, added_on, updated_on
                 FROM
                     auth_role
                 WHERE
@@ -408,8 +513,8 @@ class RoleManager
                 return $role;
             }
         } catch (PDOException $db_err) {
-            if ($this->log) {
-                $this->log->error("Failed executing fetch role by id query", ['exception' => $db_err]);
+            if ($this->logger) {
+                $this->logger->error("Failed executing fetch role by id query", ['exception' => $db_err]);
             }
             return ($multi) ? [] : false;
         }
@@ -419,10 +524,10 @@ class RoleManager
     /**
      * Load a user instance with its corresponding RoleSet
      *
-     * @param \RBAC\UserInterface $user Initialized user instance
-     * @return \RBAC\UserInterface
+     * @param \RBAC\SubjectInterface $user Initialized user instance
+     * @return \RBAC\SubjectInterface
      */
-    public function roleLoadUserRoles(UserInterface $user)
+    public function roleLoadUserRoles(SubjectInterface $user)
     {
         //todo cache this.
         $role_set = new RoleSet($this->roleFetchUserRoles($user));
@@ -433,10 +538,10 @@ class RoleManager
     /**
      * Fetch the roles that are associated with the user instance passed in.
      *
-     * @param UserInterface $user Initialized user instance
+     * @param SubjectInterface $user Initialized user instance
      * @return Role[] Roles the user has assigned
      */
-    public function roleFetchUserRoles(UserInterface $user)
+    public function roleFetchUserRoles(SubjectInterface $user)
     {
         $query = "
             SELECT
@@ -464,8 +569,8 @@ class RoleManager
                 return $roles;
             }
         } catch (PDOException $db_err) {
-            if ($this->log) {
-                $this->log->error("Failed to fetch roles for user", ['exception' => $db_err]);
+            if ($this->logger) {
+                $this->logger->error("Failed to fetch roles for user", ['exception' => $db_err]);
             }
             return [];
         }
@@ -476,10 +581,10 @@ class RoleManager
      * instance upon successful insertion into the database
      *
      * @param Role $role Existing role to be added to
-     * @param \RBAC\UserInterface $user Initialized user instance
+     * @param \RBAC\SubjectInterface $user Initialized user instance
      * @return bool Database execution success status
      */
-    public function roleAddUser(Role $role, UserInterface $user)
+    public function roleAddUser(Role $role, SubjectInterface $user)
     {
         if ($this->roleAddUserId($role, $user->id())) {
             $users_role_set = $user->getRoleSet();
@@ -519,8 +624,8 @@ class RoleManager
             $this->db->commit();
         } catch (PDOException $db_err) {
             $this->db->rollBack();
-            if ($this->log) {
-                $this->log->error("Failed to add user to role", ['exception' => $db_err]);
+            if ($this->logger) {
+                $this->logger->error("Failed to add user to role", ['exception' => $db_err]);
             }
             return false;
         }
@@ -550,8 +655,8 @@ class RoleManager
             $cur->execute();
             $permissions = $cur->fetchAll(PDO::FETCH_CLASS, self::CLASS_PERMISSION);
         } catch (PDOException $db_err) {
-            if ($this->log) {
-                $this->log->error("Error trying to fetch role permissions", ['exception' => $db_err]);
+            if ($this->logger) {
+                $this->logger->error("Error trying to fetch role permissions", ['exception' => $db_err]);
             }
             return [];
         }
@@ -570,5 +675,19 @@ class RoleManager
             $role->addPermission($permission);
         }
         return $role;
+    }
+
+    public function printRoleTree()
+    {
+        $query = "
+            SELECT COUNT(parent.name) AS depth, node.name AS name
+            FROM auth_role AS node, auth_role AS parent
+            WHERE node.lft BETWEEN parent.lft AND parent.rgt
+            GROUP BY node.name
+            ORDER BY node.lft;
+        ";
+        $cur = $this->db->prepare($query);
+        $cur->execute();
+        return $cur->fetchAll(PDO::FETCH_ASSOC);
     }
 }

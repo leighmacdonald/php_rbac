@@ -27,6 +27,10 @@ class Role
      */
     public $description = "";
 
+    public $lft = 0;
+
+    public $rgt = 0;
+
     /**
      * Array of Permissions belonging to this Role
      *

@@ -105,8 +105,9 @@ class RoleManagerTest extends DBTestCase
         $this->rm->permissionDelete(new Permission());
     }
 
-    public function testRoleSave()
+    public function testRoleNodeInserts()
     {
+        $parent_role = $this->rm->roleFetchById(2);
         $count_pre = $this->getConnection()->getRowCount("auth_role");
         $role = Role::create("test_role");
         $read_perm = $this->rm->permissionFetchById(1);
@@ -114,11 +115,18 @@ class RoleManagerTest extends DBTestCase
         $role->addPermission($read_perm);
         $role->addPermission($write_perm);
         $this->assertEquals(2, sizeof($role->getPermissions()));
-        $this->assertTrue($this->rm->roleSave($role));
+        $this->assertTrue($this->rm->roleInsertChild($role, $parent_role));
         $this->assertEquals($count_pre + 1, $this->getConnection()->getRowCount("auth_role"));
-        $role->name = "new_name";
-        $this->assertTrue($this->rm->roleSave($role));
-        $this->assertEquals($count_pre + 1, $this->getConnection()->getRowCount("auth_role"));
+        $child_role = Role::create("child_b", "child of child");
+        $this->assertTrue($this->rm->roleInsertSibling($child_role, $this->rm->roleFetchById(2)));
+        $expected = [
+            ['depth' => 1, "name" => "root"],
+            ['depth' => 2, "name" => "guest"],
+            ['depth' => 3, "name" => "test_role"],
+            ['depth' => 2, "name" => "child_b"]
+        ];
+        $tree = $this->rm->printRoleTree();
+        $this->assertEquals($expected, $tree);
     }
 
     public function testRoleSaveDBErr()
