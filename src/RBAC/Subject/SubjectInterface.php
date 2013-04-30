@@ -6,6 +6,7 @@
 namespace RBAC\Subject;
 
 use RBAC\Role\RoleSet;
+use RBAC\Permission;
 
 /**
  * To be able to associate your users with roles you must define the following minimal interface
@@ -30,4 +31,12 @@ interface SubjectInterface
      * @return \RBAC\Role\RoleSet
      */
     public function getRoleSet();
+
+    /**
+     * Check if the subject has access to the permission provided.
+     *
+     * @param Permission|string $permission
+     * @return bool
+     */
+    public function hasPermission($permission);
 }
