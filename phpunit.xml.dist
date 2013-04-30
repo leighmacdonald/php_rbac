@@ -31,7 +31,7 @@
 
     <filter>
         <whitelist addUncoveredFilesFromWhitelist="true">
-            <directory suffix=".php">../src/RBAC/</directory>
+            <directory suffix=".php">./src/RBAC/</directory>
             <exclude>
                 <directory>vendor</directory>
             </exclude>

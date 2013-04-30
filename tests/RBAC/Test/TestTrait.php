@@ -5,7 +5,7 @@
  */
 namespace RBAC\Test;
 
-use RBAC\Role\Permission;
+use RBAC\Permission;
 use RBAC\Role\Role;
 use RBAC\Test\Mock\MockLogger;
 use RBAC\Test\Mock\MockPDO;

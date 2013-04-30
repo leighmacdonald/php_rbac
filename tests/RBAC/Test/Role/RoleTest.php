@@ -5,7 +5,7 @@
  */
 namespace RBAC\Test\Role;
 
-use RBAC\Role\Permission;
+use RBAC\Permission;
 use RBAC\Role\Role;
 use RBAC\Test\TestCase;
 
@@ -44,6 +44,6 @@ class RoleTest extends TestCase
 
     public function testToString()
     {
-        $this->assertEquals("test_role", (string) Role::create("test_role"));
+        $this->assertEquals("test_role", (string)Role::create("test_role"));
     }
 }

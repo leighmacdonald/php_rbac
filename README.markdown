@@ -1,4 +1,4 @@
-php_rbac - RBAC Level 2 Implementation
+php_rbac - RBAC Level 1 Implementation
 =======================================================
 
 [![Build Status](https://travis-ci.org/leighmacdonald/php_rbac.png)](https://travis-ci.org/leighmacdonald/php_rbac)

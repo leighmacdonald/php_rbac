@@ -62,10 +62,26 @@ class RoleSet
     }
 
     /**
+     * Get the subjects assigned RoleSet
+     *
      * @return Role[]
      */
     public function getRoles()
     {
         return $this->roles;
+    }
+
+    /**
+     * Fetch a complete set of unique permissions assigned to the users roles
+     *
+     * @return Permission[]
+     */
+    public function getPermissions()
+    {
+        $permissions = [];
+        foreach ($this->roles as $role) {
+            $permissions = array_merge($permissions, $role->getPermissions());
+        }
+        return array_unique($permissions);
     }
 }

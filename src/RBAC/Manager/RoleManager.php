@@ -10,10 +10,10 @@ use PDOException;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use RBAC\Exception\ValidationError;
-use RBAC\Role\Permission;
+use RBAC\Permission;
 use RBAC\Role\Role;
 use RBAC\Role\RoleSet;
-use RBAC\SubjectInterface;
+use RBAC\Subject\SubjectInterface;
 
 class RoleManager implements LoggerAwareInterface
 {
@@ -22,7 +22,7 @@ class RoleManager implements LoggerAwareInterface
      */
     const CLASS_ROLE = '\RBAC\Role\Role';
 
-    const CLASS_PERMISSION = '\RBAC\Role\Permission';
+    const CLASS_PERMISSION = '\RBAC\Permission';
 
     /**
      * @var PDO
@@ -68,7 +68,7 @@ class RoleManager implements LoggerAwareInterface
      * @param Permission $permission
      * @return bool Save execution status
      */
-    public function permissionSave(Permission $permission, Permission $parent = null)
+    public function permissionSave(Permission $permission)
     {
         if ($permission->permission_id) {
             $query = "
@@ -184,93 +184,6 @@ class RoleManager implements LoggerAwareInterface
             $this->db->rollBack();
             if ($this->logger) {
                 $this->logger->error("Failed to delete permission", ['exception' => $db_err]);
-            }
-            return false;
-        }
-        return true;
-    }
-
-    public function roleInsertSibling(Role $role, Role $sibling_role)
-    {
-        $query_a = "UPDATE auth_role SET rgt = rgt + 2 WHERE rgt > :rgt";
-
-        $this->db->beginTransaction();
-        $cur = $this->db->prepare($query_a);
-        $cur->bindValue(":rgt", $sibling_role->rgt, PDO::PARAM_INT);
-        $cur->execute();
-        $this->db->commit();
-
-        $query_b = "UPDATE auth_role SET lft = lft + 2 WHERE lft > :rgt";
-        $this->db->beginTransaction();
-        $cur = $this->db->prepare($query_b);
-        $cur->bindValue(":rgt", $sibling_role->rgt, PDO::PARAM_INT);
-        $cur->execute();
-        $this->db->commit();
-
-        $query_c = "INSERT INTO auth_role (`name`, description, lft, rgt) VALUES (:name, :descr, :rgt+1, :rgt+2)";
-        $this->db->beginTransaction();
-        $cur = $this->db->prepare($query_c);
-        $cur->bindValue(":rgt", $sibling_role->rgt, PDO::PARAM_INT);
-        $cur->bindParam(":name", $role->name, PDO::PARAM_STR);
-        $cur->bindParam(":descr", $role->description, PDO::PARAM_STR);
-        $cur->execute();
-        $this->db->commit();
-        return true;
-    }
-
-    public function roleInsertChild(Role $role, Role $parent_role)
-    {
-        $query_a = "UPDATE auth_role SET rgt = rgt + 2 WHERE rgt > :lft";
-
-        $this->db->beginTransaction();
-        $cur = $this->db->prepare($query_a);
-        $cur->bindValue(":lft", $parent_role->lft, PDO::PARAM_INT);
-        $cur->execute();
-        $this->db->commit();
-
-        $query_b = "UPDATE auth_role SET lft = lft + 2 WHERE lft > :lft";
-        $this->db->beginTransaction();
-        $cur = $this->db->prepare($query_b);
-        $cur->bindValue(":lft", $parent_role->lft, PDO::PARAM_INT);
-        $cur->execute();
-        $this->db->commit();
-
-        $query_c = "INSERT INTO auth_role (`name`, description, lft, rgt) VALUES (:name, :descr, :lft+1, :lft+2)";
-        $this->db->beginTransaction();
-        $cur = $this->db->prepare($query_c);
-        $cur->bindValue(":lft", $parent_role->lft, PDO::PARAM_INT);
-        $cur->bindParam(":name", $role->name, PDO::PARAM_STR);
-        $cur->bindParam(":descr", $role->description, PDO::PARAM_STR);
-        $cur->execute();
-        $this->db->commit();
-        return true;
-    }
-
-    public function roleCreate(Role $role, Role $parent)
-    {
-
-        try {
-
-            $this->db->beginTransaction();
-            $cur = $this->db->prepare($query_c);
-            $cur->bindParam(":name", $role->name, PDO::PARAM_STR, 32);
-            $cur->bindParam(":description", $role->description, PDO::PARAM_STR);
-            $cur->bindValue(":lft", $lft + 1, PDO::PARAM_INT);
-            $cur->bindValue(":rgt", $rgt + 1, PDO::PARAM_INT);
-            if ($role->role_id) {
-                $cur->bindParam(":role_id", $role->role_id, PDO::PARAM_INT);
-            }
-            $cur->execute();
-            if (!$role->role_id) {
-                $role->role_id = (int)$this->db->lastInsertId();
-            }
-            $this->db->commit();
-            $role->lft = $lft + 1;
-            $role->rgt = $rgt + 1;
-        } catch (PDOException $db_err) {
-            $this->db->rollBack();
-            if ($this->logger) {
-                $this->logger->error("Failed to save role to DB", ['exception' => $db_err]);
             }
             return false;
         }
@@ -412,7 +325,7 @@ class RoleManager implements LoggerAwareInterface
     {
         $query = "
             SELECT
-                role_id, `name`, description, lft, rgt, added_on, updated_on
+                role_id, `name`, description, added_on, updated_on
             FROM
                 auth_role
         ";
@@ -440,7 +353,7 @@ class RoleManager implements LoggerAwareInterface
     {
         $query = "
             SELECT
-                role_id, `name`, description, lft, rgt, added_on, updated_on
+                role_id, `name`, description, added_on, updated_on
             FROM
                 auth_role
             WHERE
@@ -480,7 +393,7 @@ class RoleManager implements LoggerAwareInterface
             $in_query = join(",", array_fill(0, count($role_ids), "?"));
             $query = "
                 SELECT
-                    role_id, `name`, description, lft, rgt, added_on, updated_on
+                    role_id, `name`, description, added_on, updated_on
                 FROM
                     auth_role
                 WHERE
@@ -488,7 +401,7 @@ class RoleManager implements LoggerAwareInterface
         } else {
             $query = "
                 SELECT
-                  role_id, `name`, description, lft, rgt, added_on, updated_on
+                  role_id, `name`, description, added_on, updated_on
                 FROM
                     auth_role
                 WHERE
@@ -524,35 +437,35 @@ class RoleManager implements LoggerAwareInterface
     /**
      * Load a user instance with its corresponding RoleSet
      *
-     * @param \RBAC\SubjectInterface $user Initialized user instance
-     * @return \RBAC\SubjectInterface
+     * @param \RBAC\Subject\SubjectInterface $subject Initialized subject instance
+     * @return \RBAC\Subject\SubjectInterface
      */
-    public function roleLoadUserRoles(SubjectInterface $user)
+    public function roleLoadSubjectRoles(SubjectInterface $subject)
     {
         //todo cache this.
-        $role_set = new RoleSet($this->roleFetchUserRoles($user));
-        $user->loadRoleSet($role_set);
-        return $user;
+        $role_set = new RoleSet($this->roleFetchSubjectRoles($subject));
+        $subject->loadRoleSet($role_set);
+        return $subject;
     }
 
     /**
      * Fetch the roles that are associated with the user instance passed in.
      *
-     * @param SubjectInterface $user Initialized user instance
+     * @param \RBAC\Subject\SubjectInterface $subject Initialized subject instance
      * @return Role[] Roles the user has assigned
      */
-    public function roleFetchUserRoles(SubjectInterface $user)
+    public function roleFetchSubjectRoles(SubjectInterface $subject)
     {
         $query = "
             SELECT
                 role_id
             FROM
-                auth_user_role
+                auth_subject_role
             WHERE
-                user_id = :user_id
+                subject_id = :subject_id
         ";
         $cur = $this->db->prepare($query);
-        $cur->bindValue(":user_id", $user->id(), PDO::PARAM_INT);
+        $cur->bindValue(":subject_id", $subject->id(), PDO::PARAM_INT);
         try {
             $cur->execute();
             $res = $cur->fetchAll(PDO::FETCH_OBJ);
@@ -570,7 +483,7 @@ class RoleManager implements LoggerAwareInterface
             }
         } catch (PDOException $db_err) {
             if ($this->logger) {
-                $this->logger->error("Failed to fetch roles for user", ['exception' => $db_err]);
+                $this->logger->error("Failed to fetch roles for subject", ['exception' => $db_err]);
             }
             return [];
         }
@@ -581,15 +494,15 @@ class RoleManager implements LoggerAwareInterface
      * instance upon successful insertion into the database
      *
      * @param Role $role Existing role to be added to
-     * @param \RBAC\SubjectInterface $user Initialized user instance
+     * @param \RBAC\Subject\SubjectInterface $subject Initialized subject instance
      * @return bool Database execution success status
      */
-    public function roleAddUser(Role $role, SubjectInterface $user)
+    public function roleAddSubject(Role $role, SubjectInterface $subject)
     {
-        if ($this->roleAddUserId($role, $user->id())) {
-            $users_role_set = $user->getRoleSet();
+        if ($this->roleAddSubjectId($role, $subject->id())) {
+            $users_role_set = $subject->getRoleSet();
             $users_role_set->addRole($role);
-            $user->loadRoleSet($users_role_set);
+            $subject->loadRoleSet($users_role_set);
             return true;
         } else {
             return false;
@@ -600,23 +513,23 @@ class RoleManager implements LoggerAwareInterface
      * Add a user to an existing role.
      *
      * @param Role $role Existing role to be added to
-     * @param int $user_id Initialized user instance
+     * @param int $subject_id Initialized user instance
      * @throws \RBAC\Exception\ValidationError
      * @return bool Database execution success status
      */
-    public function roleAddUserId(Role $role, $user_id)
+    public function roleAddSubjectId(Role $role, $subject_id)
     {
-        if (!$user_id) {
-            throw new ValidationError("Invalid user ID");
+        if (!$subject_id) {
+            throw new ValidationError("Invalid subject ID");
         }
         $query = "
             INSERT IGNORE INTO
-                auth_user_role (user_id, role_id)
+                auth_subject_role (subject_id, role_id)
             VALUES
-                (:user_id, :role_id)
+                (:subject_id, :role_id)
         ";
         $cur = $this->db->prepare($query);
-        $cur->bindValue(":user_id", $user_id, PDO::PARAM_INT);
+        $cur->bindValue(":subject_id", $subject_id, PDO::PARAM_INT);
         $cur->bindParam(":role_id", $role->role_id, PDO::PARAM_INT);
         $this->db->beginTransaction();
         try {
@@ -625,7 +538,7 @@ class RoleManager implements LoggerAwareInterface
         } catch (PDOException $db_err) {
             $this->db->rollBack();
             if ($this->logger) {
-                $this->logger->error("Failed to add user to role", ['exception' => $db_err]);
+                $this->logger->error("Failed to add subject to role", ['exception' => $db_err]);
             }
             return false;
         }
@@ -675,19 +588,5 @@ class RoleManager implements LoggerAwareInterface
             $role->addPermission($permission);
         }
         return $role;
-    }
-
-    public function printRoleTree()
-    {
-        $query = "
-            SELECT COUNT(parent.name) AS depth, node.name AS name
-            FROM auth_role AS node, auth_role AS parent
-            WHERE node.lft BETWEEN parent.lft AND parent.rgt
-            GROUP BY node.name
-            ORDER BY node.lft;
-        ";
-        $cur = $this->db->prepare($query);
-        $cur->execute();
-        return $cur->fetchAll(PDO::FETCH_ASSOC);
     }
 }

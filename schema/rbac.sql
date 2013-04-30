@@ -21,8 +21,6 @@ CREATE TABLE `auth_role` (
     `description` TEXT
                   CHARACTER SET utf8
                   COLLATE utf8_general_ci NULL,
-    `lft`         INT(10) UNSIGNED        NOT NULL,
-    `rgt`         INT(10) UNSIGNED        NOT NULL,
     `added_on`    DATETIME                NULL DEFAULT NULL,
     `updated_on`  DATETIME                NULL DEFAULT NULL,
     PRIMARY KEY (`role_id`),
@@ -47,16 +45,16 @@ CREATE TABLE `auth_role_permissions` (
 )
     ENGINE = InnoDB;
 
-CREATE TABLE `auth_user_role` (
-    `user_role_id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
-    `user_id`      INT(10) UNSIGNED NOT NULL,
-    `role_id`      INT(10) UNSIGNED NOT NULL,
-    PRIMARY KEY (`user_role_id`),
+CREATE TABLE `auth_subject_role` (
+    `subject_role_id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+    `subject_id`      INT(10) UNSIGNED NOT NULL,
+    `role_id`         INT(10) UNSIGNED NOT NULL,
+    PRIMARY KEY (`subject_role_id`),
     FOREIGN KEY (`role_id`) REFERENCES `auth_role` (`role_id`)
         ON DELETE CASCADE
         ON UPDATE CASCADE,
-    UNIQUE INDEX `role_id` USING BTREE (`role_id`, `user_id`),
-    INDEX `fk_userid` USING BTREE (`user_id`),
+    UNIQUE INDEX `role_id` USING BTREE (`role_id`, `subject_id`),
+    INDEX `fk_subjectid` USING BTREE (`subject_id`),
     INDEX `fk_roleid` USING BTREE (`role_id`)
 )
     ENGINE = InnoDB;

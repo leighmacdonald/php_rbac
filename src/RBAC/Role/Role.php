@@ -6,6 +6,7 @@
 namespace RBAC\Role;
 
 use RBAC\Exception\ValidationError;
+use RBAC\Permission;
 
 /**
  * Defines a "Role" that can be assigned to users
@@ -26,10 +27,6 @@ class Role
      * @var string Role description
      */
     public $description = "";
-
-    public $lft = 0;
-
-    public $rgt = 0;
 
     /**
      * Array of Permissions belonging to this Role
@@ -58,7 +55,7 @@ class Role
     }
 
     /**
-     * Add a permission to the roles current permissions if it doesn't already exist
+     * Add a permission to the roles current permissions if it does not already exist
      *
      * @param Permission $permission
      * @return bool

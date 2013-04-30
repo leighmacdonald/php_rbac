@@ -41,16 +41,12 @@
         <column>role_id</column>
         <column>name</column>
         <column>description</column>
-        <column>lft</column>
-        <column>rgt</column>
         <column>added_on</column>
         <column>updated_on</column>
         <row>
             <value>1</value>
-            <value>root</value>
-            <value>Root Role</value>
-            <value>1</value>
-            <value>4</value>
+            <value>admin</value>
+            <value>Admin Role</value>
             <value>2008-12-01 12:30:29</value>
             <value>2008-12-01 12:30:29</value>
         </row>
@@ -58,8 +54,6 @@
             <value>2</value>
             <value>guest</value>
             <value>Guest User</value>
-            <value>2</value>
-            <value>3</value>
             <value>2008-12-01 12:30:29</value>
             <value>2008-12-01 12:30:29</value>
         </row>
@@ -108,9 +102,9 @@
         </row>
     </table>
 
-    <table name="auth_user_role">
-        <column>user_role_id</column>
-        <column>user_id</column>
+    <table name="auth_subject_role">
+        <column>subject_role_id</column>
+        <column>subject_id</column>
         <column>role_id</column>
         <row>
             <value>1</value>

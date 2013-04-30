@@ -6,7 +6,7 @@
 namespace RBAC\Test\Manager;
 
 use RBAC\Exception\ValidationError;
-use RBAC\Role\Permission;
+use RBAC\Permission;
 use RBAC\Role\Role;
 use RBAC\Manager\RoleManager;
 use RBAC\Test\DBTestCase;
@@ -105,9 +105,8 @@ class RoleManagerTest extends DBTestCase
         $this->rm->permissionDelete(new Permission());
     }
 
-    public function testRoleNodeInserts()
+    public function testRoleSave()
     {
-        $parent_role = $this->rm->roleFetchById(2);
         $count_pre = $this->getConnection()->getRowCount("auth_role");
         $role = Role::create("test_role");
         $read_perm = $this->rm->permissionFetchById(1);
@@ -115,18 +114,11 @@ class RoleManagerTest extends DBTestCase
         $role->addPermission($read_perm);
         $role->addPermission($write_perm);
         $this->assertEquals(2, sizeof($role->getPermissions()));
-        $this->assertTrue($this->rm->roleInsertChild($role, $parent_role));
+        $this->assertTrue($this->rm->roleSave($role));
         $this->assertEquals($count_pre + 1, $this->getConnection()->getRowCount("auth_role"));
-        $child_role = Role::create("child_b", "child of child");
-        $this->assertTrue($this->rm->roleInsertSibling($child_role, $this->rm->roleFetchById(2)));
-        $expected = [
-            ['depth' => 1, "name" => "root"],
-            ['depth' => 2, "name" => "guest"],
-            ['depth' => 3, "name" => "test_role"],
-            ['depth' => 2, "name" => "child_b"]
-        ];
-        $tree = $this->rm->printRoleTree();
-        $this->assertEquals($expected, $tree);
+        $role->name = "new_name";
+        $this->assertTrue($this->rm->roleSave($role));
+        $this->assertEquals($count_pre + 1, $this->getConnection()->getRowCount("auth_role"));
     }
 
     public function testRoleSaveDBErr()
@@ -223,13 +215,13 @@ class RoleManagerTest extends DBTestCase
     {
         $admin = new MockUser(1);
         $this->assertEquals(0, sizeof($admin->getRoleSet()->getRoles()));
-        $this->rm->roleLoadUserRoles($admin);
+        $this->rm->roleLoadSubjectRoles($admin);
         $this->assertEquals(1, sizeof($admin->getRoleSet()->getRoles()));
     }
 
     public function testRoleFetchUserRolesDBErr()
     {
-        $this->assertEquals([], $this->getMockManager()->roleFetchUserRoles(new MockUser(1)));
+        $this->assertEquals([], $this->getMockManager()->roleFetchSubjectRoles(new MockUser(1)));
     }
 
     public function testRoleAddUser()
@@ -238,14 +230,13 @@ class RoleManagerTest extends DBTestCase
         $this->assertTrue($this->rm->roleSave($role));
         $user = new MockUser(99);
         $initial_role_count = sizeof($user->getRoleSet()->getRoles());
-        $this->assertTrue($this->rm->roleAddUser($role, $user));
+        $this->assertTrue($this->rm->roleAddSubject($role, $user));
         $this->assertEquals($initial_role_count + 1, sizeof($user->getRoleSet()->getRoles()));
     }
 
     public function testRoleAddUserDBErr()
     {
-        $this->assertFalse($this->getMockManager()->roleAddUser($this->generateRole(), new MockUser(99)));
-
+        $this->assertFalse($this->getMockManager()->roleAddSubject($this->generateRole(), new MockUser(99)));
     }
 
     /**
@@ -253,12 +244,12 @@ class RoleManagerTest extends DBTestCase
      */
     public function testRoleAddUserIdInvalidId()
     {
-        $this->rm->roleAddUserId($this->generateRole(), null);
+        $this->rm->roleAddSubjectId($this->generateRole(), null);
     }
 
     public function testRoleAddUserIdDBErr()
     {
-        $this->assertFalse($this->getMockManager()->roleAddUserId($this->generateRole(), 1));
+        $this->assertFalse($this->getMockManager()->roleAddSubjectId($this->generateRole(), 1));
     }
 
     public function testPermissionFetchByRole()
@@ -268,6 +259,6 @@ class RoleManagerTest extends DBTestCase
 
     public function testRoleFetchUserRolesEmpty()
     {
-        $this->assertEquals([], $this->rm->roleFetchUserRoles(new MockUser(99)));
+        $this->assertEquals([], $this->rm->roleFetchSubjectRoles(new MockUser(99)));
     }
 }

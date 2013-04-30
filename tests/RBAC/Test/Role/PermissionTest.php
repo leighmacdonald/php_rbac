@@ -5,14 +5,14 @@
  */
 namespace RBAC\Test\Role;
 
-use RBAC\Role\Permission;
+use RBAC\Permission;
 use RBAC\Test\TestCase;
 
 class PermissionTest extends TestCase
 {
     public function testToString()
     {
-        $this->assertEquals("test_perm", (string) $this->generatePerm("test_perm"));
+        $this->assertEquals("test_perm", (string)$this->generatePerm("test_perm"));
     }
 
     public function testCreate()

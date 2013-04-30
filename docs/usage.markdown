@@ -23,7 +23,7 @@ This demonstrates creating a new permission in the database.
 ```php
 <?php
 use PDO;
-use RBAC\Role\Permission;
+use RBAC\Permission;
 use RBAC\Manager\RoleManager;
 
 // Create and populate a Permission instance
@@ -117,43 +117,9 @@ This demonstrates using the [`UserInterface`](https://github.com/leighmacdonald/
 to attach roles to your own class.
 
 ```php
-<?php
-use PDO;
-use RBAC\Role\Role;
-use RBAC\Manager\RoleManager;
-use RBAC\UserInterface;
-
-class User implements UserInterface
-{
-    private $user_id;
-
-    /**
-     * @var RoleSet
-     */
-    private $roles = [];
-
-    public function __construct($user_id)
-    {
-        $this->user_id = $user_id;
-    }
-
-    public function id() {
-        return $this->user_id;
-    }
-
-    public function loadRoleSet(RoleSet $role_set)
-    {
-        $this->roles = $role_set;
-    }
-
-    public function getRoleSet()
-    {
-        return $this->roles;
-    }
-}
 
 // The user id of your user that you wish to attach roles to
-$user = new User(4);
+$subject = new User(4);
 
 // Setup the role manager
 $role_mgr = new RoleManager(new PDO("..."));
@@ -162,10 +128,9 @@ $role_mgr = new RoleManager(new PDO("..."));
 $role = $role_mgr->roleFetchByName("admin");
 
 // Attach the role to the provided user instance'd id
-if ($role_mgr->roleAddUser($role, $user)) {
-    // Saved successfully;
-} else {
-    // Failed to add...
+if (!$role_mgr->roleAddUser($role, $subject)) {
+    throw new Exception("...");
 }
+
 ?>
 ```

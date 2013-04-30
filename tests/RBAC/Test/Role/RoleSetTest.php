@@ -6,7 +6,7 @@
 namespace RBAC\Test\Role;
 
 use PHPUnit_Framework_TestCase;
-use RBAC\Role\Permission;
+use RBAC\Permission;
 use RBAC\Role\Role;
 use RBAC\Role\RoleSet;
 use RBAC\Manager\RoleManager;
@@ -38,5 +38,20 @@ class RoleSetTest extends PHPUnit_Framework_TestCase
         $role_set->addRole($role_b);
         $this->assertTrue($role_set->has_permission("admin_read"));
         $this->assertFalse($role_set->has_permission("bs_perm"));
+    }
+
+    public function testPermissions()
+    {
+        $p1 = Permission::create("test_1", "", 1);
+        $p2 = Permission::create("test_2", "", 2);
+        $p3 = Permission::create("test_3", "", 3);
+        $p4 = Permission::create("test_4", "", 4);
+
+        $r1 = Role::create("role_1", "", [$p1, $p2]);
+        $r2 = Role::create("role_2", "", [$p1, $p2, $p4]);
+
+        $role_set = new RoleSet([$r1, $r2]);
+        $permissions = $role_set->getPermissions();
+        $this->assertEquals(3, sizeof($permissions));
     }
 }

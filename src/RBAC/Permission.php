@@ -3,7 +3,7 @@
  * @package php_rbac
  * @author  Leigh MacDonald <leigh.macdonald@gmail.com>
  */
-namespace RBAC\Role;
+namespace RBAC;
 
 /**
  * Class Permission
@@ -39,13 +39,15 @@ class Permission
     /**
      * @param string $name
      * @param string $description
+     * @param null|int $permission_id
      * @return Permission
      */
-    public static function create($name, $description = "")
+    public static function create($name, $description = "", $permission_id = null)
     {
         $perm = new self();
         $perm->name = $name;
         $perm->description = $description;
+        $perm->permission_id = $permission_id;
         return $perm;
     }
 }
