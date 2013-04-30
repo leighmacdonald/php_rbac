@@ -79,11 +79,11 @@ if ($role_mgr->roleSave($role)) {
 
 There are several methods for acheiving this.
 
-- Implementing the [`SubjectInterface`](https://github.com/leighmacdonald/php_rbac/blob/master/src/RBAC/SubjectInterface.php)
+- Implementing the [`SubjectInterface`](https://github.com/leighmacdonald/php_rbac/blob/master/src/RBAC/Subject/SubjectInterface.php)
  interface with your own projects classes. `RoleManager->roleAddUser($your_user_class);`
 - Passing in your unique user ID using `RoleManager->roleAddUserId($your_user_id);`
 
-### Using the user_id
+### Using the subject_id
 
 Demonstrates adding roles to a provided UID.
 
@@ -92,6 +92,7 @@ Demonstrates adding roles to a provided UID.
 use PDO;
 use RBAC\Role\Role;
 use RBAC\Manager\RoleManager;
+use RBAC\Subject\Subject;
 
 // The user id of your user that you wish to attach roles to
 $user_id = 4;
@@ -103,7 +104,7 @@ $role_mgr = new RoleManager(new PDO("..."));
 $role = $role_mgr->roleFetchByName("admin");
 
 // Attach the role to the provided user_id
-if ($role_mgr->roleAddUserId($role, $user_id)) {
+if ($role_mgr->roleAddSubjectId($role, $user_id)) {
     // Saved successfully;
 } else {
     // Failed to add...
@@ -111,25 +112,57 @@ if ($role_mgr->roleAddUserId($role, $user_id)) {
 ?>
 ```
 
-### Using the UserInterface
+### Using the Subject/SubjectInterface to extend your own user class
 
-This demonstrates using the [`UserInterface`](https://github.com/leighmacdonald/php_rbac/blob/master/src/RBAC/UserInterface.php)
-to attach roles to your own class.
+This demonstrates using the [`SubjectInterface`](https://github.com/leighmacdonald/php_rbac/blob/master/src/RBAC/Subject/SubjectInterface.php)
+to attach roles to your own class. There is a very basic subject example located at
+[`Subject`](https://github.com/leighmacdonald/php_rbac/blob/master/src/RBAC/Subject/Subject.php)
 
 ```php
 
-// The user id of your user that you wish to attach roles to
-$subject = new User(4);
+// The user id of your user that you wish to attach roles to. This user_id should be setup by your own
+user management system.
+
+// Implement your own user class
+class User extends Subject {
+}
+
+$db = new PDO("...");
+
+// Assuming your user management class will return
+$user_manager = new UserManager($db);
+$user = $user_manager->fetchUser("Dr.Cool");
 
 // Setup the role manager
-$role_mgr = new RoleManager(new PDO("..."));
+$role_mgr = new RoleManager($db);
 
 // Fetch an existing role called admin
 $role = $role_mgr->roleFetchByName("admin");
 
-// Attach the role to the provided user instance'd id
-if (!$role_mgr->roleAddUser($role, $subject)) {
+// Attach the role to the provided user instance
+if (!$role_mgr->roleAddSubject($role, $subject)) {
     throw new Exception("...");
+}
+
+// Check if a user belongs to the permission provided
+if (!$user->hasPermission("admin_view")) {
+    throw new InsufficientPermission("Permission denied");
+}
+
+// Or using an existing permission instance
+$permission = $role_mgr->permissionFetchById(1);
+if (!$user->hasPermission($permission)) {
+    throw new InsufficientPermission("Permission denied");
+}
+
+// Instead of manually throwing you can also use the convienence function provided in the Subject class
+// which will throw when the permission isnt found.
+try {
+    $user->checkPermission($permission);
+    // or
+    $user->checkPermission("admin_view");
+} catch (InsufficientPermission $perm_err) {
+    // handle
 }
 
 ?>
