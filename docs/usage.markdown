@@ -5,20 +5,25 @@ Ill outline basic usage of the library below. You should check out the test suit
 examples if desired. The examples below are basically in the same order as you would use the
 library most likely.
 
-## Terminology
+## Terminology & Class info
 
-- [`Permission`](https://github.com/leighmacdonald/php_rbac/blob/master/src/RBAC/Role/Permission.php) Defines a
- permission that can be assigned to roles. This can be any string you want as long as its unique.
+- [`Permission`](https://github.com/leighmacdonald/php_rbac/blob/master/src/RBAC/Permission.php) Defines a
+ permission that can be assigned to roles. The name can be any string you want as long as its unique.
 - [`Role`](https://github.com/leighmacdonald/php_rbac/blob/master/src/RBAC/Role/Role.php) A Role contains a set of
  permissions which have been allocated to it. Anyone who has this role will inherit those permissions.
 - [`RoleSet`](https://github.com/leighmacdonald/php_rbac/blob/master/src/RBAC/Role/RoleSet.php) A wrapper around
  a collection of roles which provides some helper functions for working on the set.
 - [`RoleManager`](https://github.com/leighmacdonald/php_rbac/blob/master/src/RBAC/Manager/RoleManager.php) The
  management class which takes care of: Talking to the datastore / Creating / Updating of roles and permissions.
+- [`Subject`](https://github.com/leighmacdonald/php_rbac/blob/master/src/RBAC/Subject/Subject.php) - A generic
+subject which can have roles assigned to it. In the standard use-case of user permissions, you can think of this
+interchangably as a User class.
 
 ## Creating and updating an assignable permission
 
-This demonstrates creating a new permission in the database.
+This demonstrates creating a new permission in the database. You must create permissions yourself as the
+library does not come with any pre set. I recommend using common prefixes for permission sets, for example creating some
+admin permissions: "admin_view", "admin_edit" or "user_delete", "user_view", "user_edit".. etc.
 
 ```php
 <?php
@@ -27,19 +32,19 @@ use RBAC\Permission;
 use RBAC\Manager\RoleManager;
 
 // Create and populate a Permission instance
-$perm = Permission::create("admin_view", "Allows viewing of the admin section");
+$admin_view = Permission::create("admin_view", "Allows viewing of the admin section");
 
 // Setup the role manager
 $role_mgr = new RoleManager(new PDO("..."));
 
 // Save the permission to persistant storage
-if (!$role_mgr->permissionSave($perm)) {
+if (!$role_mgr->permissionSave($admin_view )) {
     // Failed to save permission record.
 }
 
 // Demonstrates updating an existing Permission
-$perm->name = "admin_load";
-if (!$role_mgr->permissionSave($perm)) {
+$admin_view->name = "admin_view_all";
+if (!$role_mgr->permissionSave($admin_view)) {
     // Handle Error
 }
 ?>
@@ -47,7 +52,8 @@ if (!$role_mgr->permissionSave($perm)) {
 
 ## Creating a new role
 
-The following demonstrated creating an empty role with the permission that was created above.
+The following demonstrated creating an empty role with the permission that was created above. Like permissions,
+there are no roles by default created so you will have to create all that you require.
 
 ```php
 <?php
@@ -59,11 +65,13 @@ use RBAC\Manager\RoleManager;
 $role_mgr = new RoleManager(new PDO("..."));
 
 // Fetch a permission to attach. This assumes this permission was created earlier successfully.
-$perm = $role_mgr->permissionFetchByName("admin_view");
+$admin_view = $role_mgr->permissionFetchByName("admin_view");
+$admin_edit = $role_mgr->permissionFetchByName("admin_edit");
 
 // Create and populate a Role instance with a permission
 $role = Role::create("admin", "Site administrators");
-$role->addPermission($perm)
+$role->addPermission($admin_view);
+$role->addPermission($admin_edit);
 
 // Save the permission to persistant storage
 if ($role_mgr->roleSave($role)) {
@@ -77,15 +85,15 @@ if ($role_mgr->roleSave($role)) {
 
 ## Assigning Roles to your own projects users
 
-There are several methods for acheiving this.
+There are several methods for acheiving this. You can think of a subject interchangably as a User.
 
 - Implementing the [`SubjectInterface`](https://github.com/leighmacdonald/php_rbac/blob/master/src/RBAC/Subject/SubjectInterface.php)
- interface with your own projects classes. `RoleManager->roleAddUser($your_user_class);`
-- Passing in your unique user ID using `RoleManager->roleAddUserId($your_user_id);`
+ interface with your own projects classes. `RoleManager->roleAddSubject($your_subject_class);`
+- Passing in your unique subject ID using `RoleManager->roleAddSubjectId($your_subject_id);`
 
 ### Using the subject_id
 
-Demonstrates adding roles to a provided UID.
+Demonstrates adding roles to a provided user ID.
 
 ```php
 <?php
@@ -115,7 +123,7 @@ if ($role_mgr->roleAddSubjectId($role, $user_id)) {
 ### Using the Subject/SubjectInterface to extend your own user class
 
 This demonstrates using the [`SubjectInterface`](https://github.com/leighmacdonald/php_rbac/blob/master/src/RBAC/Subject/SubjectInterface.php)
-to attach roles to your own class. There is a very basic subject example located at
+to attach roles to your own class. There is a minimal implemented subject example located at
 [`Subject`](https://github.com/leighmacdonald/php_rbac/blob/master/src/RBAC/Subject/Subject.php)
 
 ```php
