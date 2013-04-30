@@ -120,8 +120,7 @@ to attach roles to your own class. There is a very basic subject example located
 
 ```php
 
-// The user id of your user that you wish to attach roles to. This user_id should be setup by your own
-user management system.
+// The user id of your user that you wish to attach roles to. This user_id should be setup by your own user management system.
 
 // Implement your own user class
 class User extends Subject {
@@ -143,6 +142,20 @@ $role = $role_mgr->roleFetchByName("admin");
 if (!$role_mgr->roleAddSubject($role, $subject)) {
     throw new Exception("...");
 }
+```
+
+### Check a subject for permissions
+
+Demonstrates how to load and check permissions of a subject instance
+
+```php
+
+// $user_manager is pseudo code for your own external user management class. Its assumed that your
+// class will return a user class implementing SubjectInterface.
+$user = $user_manager->fetchUser("Dr.Cool");
+
+// Populate the roles into the user/subject instance
+$role_manager->loadSubjectRoles($user);
 
 // Check if a user belongs to the permission provided
 if (!$user->hasPermission("admin_view")) {
