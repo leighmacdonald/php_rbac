@@ -128,15 +128,13 @@ to attach roles to your own class. There is a minimal implemented subject exampl
 
 ```php
 
-// The user id of your user that you wish to attach roles to. This user_id should be setup by your own user management system.
-
 // Implement your own user class
 class User extends Subject {
 }
 
 $db = new PDO("...");
 
-// Assuming your user management class will return
+// Assuming your user management class will return a user class which implements SubjectInterface or extends Subject
 $user_manager = new UserManager($db);
 $user = $user_manager->fetchUser("Dr.Cool");
 
@@ -147,7 +145,7 @@ $role_mgr = new RoleManager($db);
 $role = $role_mgr->roleFetchByName("admin");
 
 // Attach the role to the provided user instance
-if (!$role_mgr->roleAddSubject($role, $subject)) {
+if (!$role_mgr->roleAddSubject($role, $user)) {
     throw new Exception("...");
 }
 ```
