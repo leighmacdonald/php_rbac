@@ -9,8 +9,8 @@ use RBAC\Exception\ValidationError;
 use RBAC\Permission;
 use RBAC\Role\Role;
 use RBAC\Manager\RoleManager;
+use RBAC\Subject\Subject;
 use RBAC\Test\DBTestCase;
-use RBAC\Test\Mock\MockUser;
 
 class RoleManagerTest extends DBTestCase
 {
@@ -211,43 +211,43 @@ class RoleManagerTest extends DBTestCase
         $this->assertEquals([], $this->getMockManager()->roleFetchById([]));
     }
 
-    public function testRoleLoadUserRoles()
+    public function testRoleLoadSubjectRoles()
     {
-        $admin = new MockUser(1);
+        $admin = new Subject(1);
         $this->assertEquals(0, sizeof($admin->getRoleSet()->getRoles()));
         $this->rm->roleLoadSubjectRoles($admin);
         $this->assertEquals(1, sizeof($admin->getRoleSet()->getRoles()));
     }
 
-    public function testRoleFetchUserRolesDBErr()
+    public function testRoleFetchSubjectRolesDBErr()
     {
-        $this->assertEquals([], $this->getMockManager()->roleFetchSubjectRoles(new MockUser(1)));
+        $this->assertEquals([], $this->getMockManager()->roleFetchSubjectRoles(new Subject(1)));
     }
 
-    public function testRoleAddUser()
+    public function testRoleAddSubject()
     {
         $role = $this->rm->roleFetchById(1);
         $this->assertTrue($this->rm->roleSave($role));
-        $user = new MockUser(99);
-        $initial_role_count = sizeof($user->getRoleSet()->getRoles());
-        $this->assertTrue($this->rm->roleAddSubject($role, $user));
-        $this->assertEquals($initial_role_count + 1, sizeof($user->getRoleSet()->getRoles()));
+        $subject = new Subject(99);
+        $initial_role_count = sizeof($subject->getRoleSet()->getRoles());
+        $this->assertTrue($this->rm->roleAddSubject($role, $subject));
+        $this->assertEquals($initial_role_count + 1, sizeof($subject->getRoleSet()->getRoles()));
     }
 
-    public function testRoleAddUserDBErr()
+    public function testRoleAddSubjectDBErr()
     {
-        $this->assertFalse($this->getMockManager()->roleAddSubject($this->generateRole(), new MockUser(99)));
+        $this->assertFalse($this->getMockManager()->roleAddSubject($this->generateRole(), new Subject(99)));
     }
 
     /**
      * @expectedException \RBAC\Exception\ValidationError
      */
-    public function testRoleAddUserIdInvalidId()
+    public function testRoleAddSubjectIdInvalidId()
     {
         $this->rm->roleAddSubjectId($this->generateRole(), null);
     }
 
-    public function testRoleAddUserIdDBErr()
+    public function testRoleAddSubjectIdDBErr()
     {
         $this->assertFalse($this->getMockManager()->roleAddSubjectId($this->generateRole(), 1));
     }
@@ -257,8 +257,8 @@ class RoleManagerTest extends DBTestCase
         $this->assertEquals([], $this->getMockManager()->permissionFetchByRole($this->generateRole()));
     }
 
-    public function testRoleFetchUserRolesEmpty()
+    public function testRoleFetchSubjectRolesEmpty()
     {
-        $this->assertEquals([], $this->rm->roleFetchSubjectRoles(new MockUser(99)));
+        $this->assertEquals([], $this->rm->roleFetchSubjectRoles(new Subject(99)));
     }
 }
