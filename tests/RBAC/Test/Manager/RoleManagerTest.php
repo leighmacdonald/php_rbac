@@ -211,11 +211,11 @@ class RoleManagerTest extends DBTestCase
         $this->assertEquals([], $this->getMockManager()->roleFetchById([]));
     }
 
-    public function testRoleLoadSubjectRoles()
+    public function testloadSubjectRoles()
     {
         $admin = new Subject(1);
         $this->assertEquals(0, sizeof($admin->getRoleSet()->getRoles()));
-        $this->rm->roleLoadSubjectRoles($admin);
+        $this->rm->loadSubjectRoles($admin);
         $this->assertEquals(1, sizeof($admin->getRoleSet()->getRoles()));
     }
 

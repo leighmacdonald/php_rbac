@@ -440,7 +440,7 @@ class RoleManager implements LoggerAwareInterface
      * @param \RBAC\Subject\SubjectInterface $subject Initialized subject instance
      * @return \RBAC\Subject\SubjectInterface
      */
-    public function roleLoadSubjectRoles(SubjectInterface $subject)
+    public function loadSubjectRoles(SubjectInterface $subject)
     {
         //todo cache this.
         $role_set = new RoleSet($this->roleFetchSubjectRoles($subject));
@@ -451,6 +451,7 @@ class RoleManager implements LoggerAwareInterface
     /**
      * Fetch the roles that are associated with the user instance passed in.
      *
+     * @todo cache roles
      * @param \RBAC\Subject\SubjectInterface $subject Initialized subject instance
      * @return Role[] Roles the user has assigned
      */
@@ -464,6 +465,7 @@ class RoleManager implements LoggerAwareInterface
             WHERE
                 subject_id = :subject_id
         ";
+        $roles = [];
         $cur = $this->db->prepare($query);
         $cur->bindValue(":subject_id", $subject->id(), PDO::PARAM_INT);
         try {
@@ -479,14 +481,13 @@ class RoleManager implements LoggerAwareInterface
                     $res
                 );
                 $roles = $this->roleFetchById($role_ids);
-                return $roles;
             }
         } catch (PDOException $db_err) {
             if ($this->logger) {
                 $this->logger->error("Failed to fetch roles for subject", ['exception' => $db_err]);
             }
-            return [];
         }
+        return $roles;
     }
 
     /**
