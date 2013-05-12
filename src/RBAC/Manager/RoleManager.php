@@ -9,6 +9,7 @@ use PDO;
 use PDOException;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
+use RBAC\DataStore\StorageInterface;
 use RBAC\Exception\ValidationError;
 use RBAC\Permission;
 use RBAC\Role\Role;
@@ -25,9 +26,9 @@ class RoleManager implements LoggerAwareInterface
     const CLASS_PERMISSION = '\RBAC\Permission';
 
     /**
-     * @var PDO
+     * @var \RBAC\DataStore\StorageInterface
      */
-    protected $db;
+    protected $storage;
 
     /**
      * @var \Psr\Log\LoggerInterface
@@ -40,11 +41,13 @@ class RoleManager implements LoggerAwareInterface
      * The logger can be any PSR-3 compatible logger. Its highly recommended to use one.
      *
      * @param \PDO $db PDO Database connection
+     * @param \RBAC\DataStore\StorageInterface $storage
      * @param \Psr\Log\LoggerInterface $logger optional logger instance
      */
-    public function __construct(PDO $db, LoggerInterface $logger = null)
+    public function __construct(PDO $db, StorageInterface $storage, LoggerInterface $logger = null)
     {
-        $this->db = $db;
+        $this->storage = $storage;
+
         if ($logger) {
             $this->setLogger($logger);
         }
