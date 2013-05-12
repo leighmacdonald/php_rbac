@@ -25,6 +25,8 @@ class PDOMySQLAdapter extends Logger implements StorageInterface
 
     const CLASS_PERMISSION = '\RBAC\Permission';
 
+    protected $sql_time_func = 'NOW()';
+
     /**
      * @var null|\PDO
      */
@@ -53,7 +55,7 @@ class PDOMySQLAdapter extends Logger implements StorageInterface
                 UPDATE
                     auth_permission
                 SET
-                    `name` = :name, description = :description, updated_on = NOW()
+                    `name` = :name, description = :description, updated_on = " . $this->sql_time_func . "
                 WHERE
                     permission_id = :permission_id
             ";
@@ -62,7 +64,7 @@ class PDOMySQLAdapter extends Logger implements StorageInterface
                 INSERT INTO
                     auth_permission (`name`, description, updated_on, added_on)
                 VALUES
-                    (:name, :description, NOW(), NOW())
+                    (:name, :description, " . $this->sql_time_func . ", " . $this->sql_time_func . ")
             ";
         }
         $cur = $this->db->prepare($query);
@@ -183,7 +185,7 @@ class PDOMySQLAdapter extends Logger implements StorageInterface
                 UPDATE
                     auth_role
                 SET
-                    `name` = :name, description = :description, updated_on = NOW()
+                    `name` = :name, description = :description, updated_on = " . $this->sql_time_func . "
                 WHERE
                     role_id = :role_id
             ";
@@ -192,7 +194,7 @@ class PDOMySQLAdapter extends Logger implements StorageInterface
                 INSERT INTO auth_role
                     (name, description, added_on, updated_on)
                 VALUES
-                    (:name, :description, NOW(), NOW())
+                    (:name, :description, " . $this->sql_time_func . ", " . $this->sql_time_func . ")
             ";
         }
         $cur = $this->db->prepare($query);
@@ -238,7 +240,7 @@ class PDOMySQLAdapter extends Logger implements StorageInterface
             INSERT INTO
                 auth_role_permissions (role_id, permission_id, added_on)
             VALUES
-                (:role_id, :permission_id, NOW())
+                (:role_id, :permission_id, " . $this->sql_time_func . ")
         ";
         $cur = $this->db->prepare($query);
         $cur->bindParam(":role_id", $role->role_id, PDO::PARAM_INT);
@@ -442,7 +444,7 @@ class PDOMySQLAdapter extends Logger implements StorageInterface
             throw new ValidationError("Invalid subject ID");
         }
         $query = "
-            INSERT IGNORE INTO
+            INSERT INTO
                 auth_subject_role (subject_id, role_id)
             VALUES
                 (:subject_id, :role_id)

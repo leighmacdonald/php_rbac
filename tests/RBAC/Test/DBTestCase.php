@@ -9,6 +9,7 @@ use PDO;
 use PHPUnit_Extensions_Database_TestCase;
 use PHPUnit_Extensions_Database_DataSet_IDataSet;
 use RBAC\DataStore\Adapter\PDOMySQLAdapter;
+use RBAC\DataStore\Adapter\PDOSQLiteAdapter;
 use RBAC\DataStore\StorageInterface;
 
 /**
@@ -33,39 +34,20 @@ class DBTestCase extends PHPUnit_Extensions_Database_TestCase
     {
         if ($this->conn === null) {
             if ($this->adapter == null) {
-                $db = new PDO($GLOBALS['DB_DSN'], $GLOBALS['DB_USER'], $GLOBALS['DB_PASSWD']);
+                $db = new PDO($GLOBALS['DB_DSN'], null, null, array(PDO::ATTR_PERSISTENT => true));
                 $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-                $databases = array_map(
-                    function ($db) {
-                        return $db->Database;
-                    },
-                    $db->query("SHOW DATABASES")->fetchAll(PDO::FETCH_OBJ)
-                );
-                if (!in_array($GLOBALS['DB_DBNAME'], $databases)) {
-                    $db->query("CREATE DATABASE " . $GLOBALS['DB_DBNAME']);
-                    $db->query("USE " . $GLOBALS['DB_DBNAME']);
-                    $schema_path = $this->getRootPath() . "/schema/rbac.sql";
-                    $schema = file_get_contents($schema_path);
-                    $db->query($schema);
-                } else {
-                    $db->query("USE " . $GLOBALS['DB_DBNAME']);
-                }
-                $this->adapter = new PDOMySQLAdapter($db);
+
+                $schema_path = $this->getRootPath() . "/schema/sqlite.sql";
+                $schema = file_get_contents($schema_path);
+                $db->exec($schema);
+
+                $this->adapter = new PDOSQLiteAdapter($db, $this->getMockLogger());
             }
-            $this->conn = $this->createDefaultDBConnection($db, $GLOBALS['DB_DBNAME']);
+            $this->conn = $this->createDefaultDBConnection($db);
         }
         return $this->conn;
     }
 
-    public function getSetUpOperation()
-    {
-        $cascadeTruncates = true; // If you want cascading truncates, false otherwise. If unsure choose false.
-
-        return new \PHPUnit_Extensions_Database_Operation_Composite(array(
-            new TruncateOperation($cascadeTruncates),
-            \PHPUnit_Extensions_Database_Operation_Factory::INSERT()
-        ));
-    }
 
     /**
      * @return PHPUnit_Extensions_Database_DataSet_IDataSet

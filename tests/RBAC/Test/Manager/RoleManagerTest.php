@@ -22,7 +22,6 @@ class RoleManagerTest extends DBTestCase
     public function setUp()
     {
         $this->getConnection();
-        $this->adapter->db->query("TRUNCATE auth_role_permissions");
         parent::setUp();
         $this->rm = $this->getRoleManager();
     }
