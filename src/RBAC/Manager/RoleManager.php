@@ -44,9 +44,9 @@ class RoleManager implements LoggerAwareInterface
      * @param \RBAC\DataStore\StorageInterface $storage
      * @param \Psr\Log\LoggerInterface $logger optional logger instance
      */
-    public function __construct(PDO $db, StorageInterface $storage, LoggerInterface $logger = null)
+    public function __construct(PDO $db, LoggerInterface $logger = null)
     {
-        $this->storage = $storage;
+        $this->db = $db;
 
         if ($logger) {
             $this->setLogger($logger);
