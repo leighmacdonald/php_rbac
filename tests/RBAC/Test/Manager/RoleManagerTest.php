@@ -22,7 +22,7 @@ class RoleManagerTest extends DBTestCase
     public function setUp()
     {
         $this->getConnection();
-        self::$db->query("TRUNCATE auth_role_permissions");
+        $this->adapter->db->query("TRUNCATE auth_role_permissions");
         parent::setUp();
         $this->rm = $this->getRoleManager();
     }
@@ -34,7 +34,7 @@ class RoleManagerTest extends DBTestCase
 
     public function getRoleManager()
     {
-        return new RoleManager(self::$db, $this->getMockLogger());
+        return new RoleManager($this->adapter, $this->getMockLogger());
     }
 
     public function testPermissionFetchById()

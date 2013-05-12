@@ -8,8 +8,8 @@ namespace RBAC\Test;
 use RBAC\Permission;
 use RBAC\Role\Role;
 use RBAC\Test\Mock\MockLogger;
-use RBAC\Test\Mock\MockPDO;
 use RBAC\Test\Mock\MockPDOStatement;
+use RBAC\Test\Mock\MockStorage;
 
 /**
  *
@@ -51,7 +51,7 @@ trait TestTrait
 
     protected function getMockDB($throw = true)
     {
-        $db = new MockPDO($this->getMockStatement($throw), $throw);
+        $db = new MockStorage($this->getMockStatement($throw), $throw);
         return $db;
     }
 

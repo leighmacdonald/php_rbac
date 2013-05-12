@@ -11,6 +11,6 @@ class APCRoleManagerTest extends RoleManagerTest
 {
     public function getRoleManager()
     {
-        return new APCRoleManager(self::$db);
+        return new APCRoleManager($this->adapter, $this->getMockLogger());
     }
 }

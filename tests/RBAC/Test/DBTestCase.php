@@ -8,6 +8,8 @@ namespace RBAC\Test;
 use PDO;
 use PHPUnit_Extensions_Database_TestCase;
 use PHPUnit_Extensions_Database_DataSet_IDataSet;
+use RBAC\DataStore\Adapter\PDOMySQLAdapter;
+use RBAC\DataStore\StorageInterface;
 
 /**
  *
@@ -20,9 +22,9 @@ class DBTestCase extends PHPUnit_Extensions_Database_TestCase
     use TestTrait;
 
     /**
-     * @var PDO
+     * @var StorageInterface
      */
-    static protected $db = null;
+    public $adapter = null;
 
     // only instantiate PHPUnit_Extensions_Database_DB_IDatabaseConnection once per test
     protected $conn = null;
@@ -30,7 +32,7 @@ class DBTestCase extends PHPUnit_Extensions_Database_TestCase
     final public function getConnection()
     {
         if ($this->conn === null) {
-            if (self::$db == null) {
+            if ($this->adapter == null) {
                 $db = new PDO($GLOBALS['DB_DSN'], $GLOBALS['DB_USER'], $GLOBALS['DB_PASSWD']);
                 $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
                 $databases = array_map(
@@ -48,9 +50,9 @@ class DBTestCase extends PHPUnit_Extensions_Database_TestCase
                 } else {
                     $db->query("USE " . $GLOBALS['DB_DBNAME']);
                 }
-                self::$db = $db;
+                $this->adapter = new PDOMySQLAdapter($db);
             }
-            $this->conn = $this->createDefaultDBConnection(self::$db, $GLOBALS['DB_DBNAME']);
+            $this->conn = $this->createDefaultDBConnection($db, $GLOBALS['DB_DBNAME']);
         }
         return $this->conn;
     }
