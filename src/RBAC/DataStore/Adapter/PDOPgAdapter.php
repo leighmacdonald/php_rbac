@@ -16,7 +16,7 @@ use RBAC\Role\Role;
  * Class PDOSQLiteAdapter
  * @package RBAC\DataStore\Adapter
  */
-class PDOSQLiteAdapter extends PDOMySQLAdapter implements StorageInterface
+class PDOPgAdapter extends PDOMySQLAdapter implements StorageInterface
 {
     protected $sql_time_func = 'datetime(current_timestamp)';
 }

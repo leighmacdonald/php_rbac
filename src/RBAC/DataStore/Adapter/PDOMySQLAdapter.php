@@ -1,7 +1,7 @@
 <?php
 /**
  * @package php_rbac
- * @author  Leigh MacDonald <leighm@ppdm.org>
+ * @author  Leigh MacDonald <leigh.macdonald@gmail.com>
  */
 
 namespace RBAC\DataStore\Adapter;
@@ -33,7 +33,7 @@ class PDOMySQLAdapter extends Logger implements StorageInterface
     public $db = null;
 
     /**
-     * @param PDO $db
+     * @param PDO             $db
      * @param LoggerInterface $logger
      */
     public function __construct(PDO $db, LoggerInterface $logger = null)
@@ -46,6 +46,7 @@ class PDOMySQLAdapter extends Logger implements StorageInterface
 
     /**
      * @param Permission $permission
+     *
      * @return bool
      */
     public function permissionSave(Permission $permission)
@@ -94,6 +95,7 @@ class PDOMySQLAdapter extends Logger implements StorageInterface
      * Sets a logger instance on the object
      *
      * @param LoggerInterface $logger
+     *
      * @return null
      */
     public function setLogger(LoggerInterface $logger)
@@ -102,6 +104,10 @@ class PDOMySQLAdapter extends Logger implements StorageInterface
     }
 
     /**
+     * Fetch a permission by is ID, returning false if it doesn't exist.
+     *
+     * @param $permission_id
+     *
      * @return bool|mixed
      */
     public function permissionFetchById($permission_id)
@@ -150,6 +156,7 @@ class PDOMySQLAdapter extends Logger implements StorageInterface
 
     /**
      * @param Permission $permission
+     *
      * @return bool
      * @throws \RBAC\Exception\ValidationError
      */
@@ -176,6 +183,7 @@ class PDOMySQLAdapter extends Logger implements StorageInterface
 
     /**
      * @param Role $role
+     *
      * @return bool
      */
     public function roleSave(Role $role)
@@ -207,7 +215,7 @@ class PDOMySQLAdapter extends Logger implements StorageInterface
         try {
             $cur->execute();
             if (!$role->role_id) {
-                $role->role_id = (int)$this->db->lastInsertId();
+                $role->role_id = (int) $this->db->lastInsertId();
             }
             $this->db->commit();
         } catch (PDOException $db_err) {
@@ -226,8 +234,9 @@ class PDOMySQLAdapter extends Logger implements StorageInterface
     }
 
     /**
-     * @param Role $role
+     * @param Role       $role
      * @param Permission $permission
+     *
      * @return bool
      * @throws \RBAC\Exception\ValidationError
      */
@@ -261,6 +270,7 @@ class PDOMySQLAdapter extends Logger implements StorageInterface
 
     /**
      * @param Role $role
+     *
      * @return bool
      * @throws \RBAC\Exception\ValidationError
      */
@@ -317,6 +327,7 @@ class PDOMySQLAdapter extends Logger implements StorageInterface
 
     /**
      * @param $role_name
+     *
      * @return bool|Role
      */
     public function roleFetchByName($role_name)
@@ -345,6 +356,7 @@ class PDOMySQLAdapter extends Logger implements StorageInterface
 
     /**
      * @param $role_ids
+     *
      * @return Role|Role[]
      */
     public function roleFetchById($role_ids)
@@ -353,7 +365,7 @@ class PDOMySQLAdapter extends Logger implements StorageInterface
         if (!$role_ids) {
             return [];
         }
-        $role_ids = (array)$role_ids;
+        $role_ids = (array) $role_ids;
         if ($multi) {
             $in_query = join(",", array_fill(0, count($role_ids), "?"));
             $query = "
@@ -395,6 +407,7 @@ class PDOMySQLAdapter extends Logger implements StorageInterface
 
     /**
      * @param SubjectInterface $subject
+     *
      * @return Role|\RBAC\Role\Role[]
      */
     public function roleFetchSubjectRoles(SubjectInterface $subject)
@@ -434,7 +447,8 @@ class PDOMySQLAdapter extends Logger implements StorageInterface
 
     /**
      * @param Role $role
-     * @param $subject_id
+     * @param      $subject_id
+     *
      * @return bool
      * @throws \RBAC\Exception\ValidationError
      */
@@ -468,6 +482,7 @@ class PDOMySQLAdapter extends Logger implements StorageInterface
 
     /**
      * @param Role $role
+     *
      * @return array
      */
     public function permissionFetchByRole(Role $role)

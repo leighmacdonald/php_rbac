@@ -1,7 +1,7 @@
 <?php
 /**
  * @package php_rbac
- * @author  Leigh MacDonald <leighm@ppdm.org>
+ * @author  Leigh MacDonald <leigh.macdonald@gmail.com>
  */
 namespace RBAC\Test;
 
@@ -13,7 +13,6 @@ use RBAC\DataStore\Adapter\PDOSQLiteAdapter;
 use RBAC\DataStore\StorageInterface;
 
 /**
- *
  * SPEED TIP:
  * http://dev.mysql.com/doc/refman/5.5/en/innodb-parameters.html#sysvar_innodb_flush_log_at_trx_commit
  * Set this to 2

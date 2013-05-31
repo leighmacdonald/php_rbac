@@ -8,31 +8,29 @@ use RBAC\Role\RoleSet;
 
 /**
  * Example of an implementation of the SubjectInterface to demonstrate using a custom user class.
- *
- *
  * Class Subject
  * @package RBAC\Subject
  */
 class Subject implements SubjectInterface
 {
     /**
-     * ID of the user. This should be a unique integer supplied yourself from whatever
-     * user management system you are using.
-     *
+     * ID of the user or service. This should be a unique integer supplied yourself from whatever
+     * user/system management system you are using.
      * @var int
      */
     protected $subject_id;
 
     /**
      * A class holding a current set of the users roles and permissions they belong to.
-     *
      * @var RoleSet
      */
     private $roles;
 
     /**
-     * @param int $user_id A user id to tied into your own user management system
-     * @param RoleSet $role_set (optional) A RoleSet supplied in the constructor
+     * @param int     $subject_id An ID tied into your own user management system
+     * @param RoleSet $role_set   (optional) A RoleSet supplied in the constructor
+     *
+     * @internal param int $user_id A user id to
      */
     public function __construct($subject_id, RoleSet $role_set = null)
     {
@@ -45,7 +43,6 @@ class Subject implements SubjectInterface
 
     /**
      * This should return the unsigned unique ID of the user instance.
-     *
      * @return int user_id of the user
      */
     public function id()
@@ -65,7 +62,6 @@ class Subject implements SubjectInterface
 
     /**
      * Return the currently loaded RoleSet
-     *
      * @return \RBAC\Role\RoleSet
      */
     public function getRoleSet()
@@ -77,6 +73,7 @@ class Subject implements SubjectInterface
      * Check if a user has access to the permission requested
      *
      * @param string|Permission $permission name of the permission or Permission instance
+     *
      * @return bool
      */
     public function hasPermission($permission)
@@ -92,6 +89,7 @@ class Subject implements SubjectInterface
      * not found.
      *
      * @param string|Permission $permission
+     *
      * @throws \RBAC\Exception\InsufficientPermission
      */
     public function requirePermission($permission)

@@ -1,7 +1,7 @@
 <?php
 /**
  * @package php_rbac
- * @author  Leigh MacDonald <leighm@ppdm.org>
+ * @author  Leigh MacDonald <leigh.macdonald@gmail.com>
  */
 namespace RBAC\Test;
 
@@ -21,7 +21,6 @@ trait TestTrait
 
     /**
      * Get the root path of the project tree
-     *
      * @return string
      */
     protected function getRootPath()

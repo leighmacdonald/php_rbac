@@ -1,7 +1,7 @@
 <?php
 /**
  * @package php_rbac
- * @author  Leigh MacDonald <leighm@ppdm.org>
+ * @author  Leigh MacDonald <leigh.macdonald@gmail.com>
  */
 
 namespace RBAC;
@@ -21,6 +21,7 @@ class Logger implements LoggerAwareInterface
      * Sets a logger instance on the object
      *
      * @param LoggerInterface $logger
+     *
      * @return null
      */
     public function setLogger(LoggerInterface $logger)
