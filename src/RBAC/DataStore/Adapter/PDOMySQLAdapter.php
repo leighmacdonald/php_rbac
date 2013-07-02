@@ -45,6 +45,13 @@ class PDOMySQLAdapter extends Logger implements StorageInterface
     }
 
     /**
+     * @return null|PDO
+     */
+    public function getDBConn() {
+        return $this->db;
+    }
+
+    /**
      * @param Permission $permission
      *
      * @return bool

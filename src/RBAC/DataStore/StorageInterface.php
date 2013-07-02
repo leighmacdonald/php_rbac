@@ -7,6 +7,7 @@
 namespace RBAC\DataStore;
 
 
+use PDO;
 use Psr\Log\LoggerAwareInterface;
 use RBAC\Permission;
 use RBAC\Role\Role;
@@ -14,6 +15,10 @@ use RBAC\Subject\SubjectInterface;
 
 interface StorageInterface extends LoggerAwareInterface
 {
+    /**
+     * @return PDO
+     */
+    public function getDBConn();
 
     public function permissionSave(Permission $permission);
 
