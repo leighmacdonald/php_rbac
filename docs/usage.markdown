@@ -35,7 +35,7 @@ use RBAC\Manager\RoleManager;
 $admin_view = Permission::create("admin_view", "Allows viewing of the admin section");
 
 // Setup the role manager
-$role_mgr = new RoleManager(new PDO("..."));
+$role_mgr = new RoleManager(new PDOSQLiteAdapter(new PDO("...")));
 
 // Save the permission to persistant storage
 if (!$role_mgr->permissionSave($admin_view )) {
@@ -61,7 +61,7 @@ use PDO;
 use RBAC\Role\Role;
 use RBAC\Manager\RoleManager;
 
-$storage_adapter = new PDOSQLiteAdapter(PDO("..."));
+$storage_adapter = new PDOSQLiteAdapter(new PDO("..."));
 
 // Setup the role manager
 $role_mgr = new RoleManager($storage_adapter);
@@ -109,7 +109,7 @@ $user_id = 4;
 
 
 // Setup the role manager
-$storage_adapter = new PDOSQLiteAdapter(PDO("..."));
+$storage_adapter = new PDOSQLiteAdapter(new PDO("..."));
 $role_mgr = new RoleManager($storage_adapter);
 
 // Fetch an existing role called admin
