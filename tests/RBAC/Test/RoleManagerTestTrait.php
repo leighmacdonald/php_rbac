@@ -1,47 +1,13 @@
 <?php
-/**
- * @package php_rbac
- * @author  Leigh MacDonald <leigh.macdonald@gmail.com>
- */
-namespace RBAC\Test\Manager;
 
-use PDO;
-use RBAC\DataStore\Adapter\PDOSQLiteAdapter;
-use RBAC\Exception\ValidationError;
+namespace RBAC\Test;
+
+
 use RBAC\Permission;
 use RBAC\Role\Role;
-use RBAC\Manager\RoleManager;
 use RBAC\Subject\Subject;
-use RBAC\Test\DBTestCase;
 
-class RoleManagerTest extends DBTestCase
-{
-    /**
-     * @var RoleManager
-     */
-    protected $rm;
-
-    public function setUp()
-    {
-        $this->setup_pdo_adapter(
-            new PDOSQLiteAdapter(
-                new PDO($GLOBALS['DB_DSN_SQLITE'], null, null, array(PDO::ATTR_PERSISTENT => true)),
-                $this->getMockLogger()
-            )
-        );
-        $this->rm = $this->getRoleManager();
-    }
-
-    protected function getMockManager()
-    {
-        return new RoleManager($this->getMockDB(), $this->getMockLogger());
-    }
-
-    public function getRoleManager()
-    {
-        return new RoleManager($this->adapter, $this->getMockLogger());
-    }
-
+trait RoleManagerTestTrait {
     public function testPermissionFetchById()
     {
         $this->assertEquals(1, $this->rm->permissionFetchById(1)->permission_id);

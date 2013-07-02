@@ -61,8 +61,10 @@ use PDO;
 use RBAC\Role\Role;
 use RBAC\Manager\RoleManager;
 
+$storage_adapter = new PDOSQLiteAdapter(PDO("..."));
+
 // Setup the role manager
-$role_mgr = new RoleManager(new PDO("..."));
+$role_mgr = new RoleManager($storage_adapter);
 
 // Fetch a permission to attach. This assumes this permission was created earlier successfully.
 $admin_view = $role_mgr->permissionFetchByName("admin_view");
@@ -105,8 +107,10 @@ use RBAC\Subject\Subject;
 // The user id of your user that you wish to attach roles to
 $user_id = 4;
 
+
 // Setup the role manager
-$role_mgr = new RoleManager(new PDO("..."));
+$storage_adapter = new PDOSQLiteAdapter(PDO("..."));
+$role_mgr = new RoleManager($storage_adapter);
 
 // Fetch an existing role called admin
 $role = $role_mgr->roleFetchByName("admin");
@@ -132,14 +136,15 @@ to attach roles to your own class. There is a minimal implemented subject exampl
 class User extends Subject {
 }
 
-$db = new PDO("...");
+$db_adapter = new PDO("...");
+$storage_adapter = new PDOSQLiteAdapter($db_adapter);
 
 // Assuming your user management class will return a user class which implements SubjectInterface or extends Subject
-$user_manager = new UserManager($db);
+$user_manager = new UserManager($db_adapter);
 $user = $user_manager->fetchUser("Dr.Cool");
 
 // Setup the role manager
-$role_mgr = new RoleManager($db);
+$role_mgr = new RoleManager($storage_adapter);
 
 // Fetch an existing role called admin
 $role = $role_mgr->roleFetchByName("admin");

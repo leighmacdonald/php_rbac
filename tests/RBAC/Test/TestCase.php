@@ -1,7 +1,7 @@
 <?php
 /**
- * @package ppdmlib
- * @author  Leigh MacDonald <leighm@ppdm.org>
+ * @package php_rbac
+ * @author  Leigh MacDonald <leigh.macdonald@gmail.com>
  */
 namespace RBAC\Test;
 

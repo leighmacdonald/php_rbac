@@ -1,16 +1,18 @@
 <?php
 /**
  * @package php_rbac
- * @author  Leigh MacDonald <leighm@ppdm.org>
+ * @author  Leigh MacDonald <leigh.macdonald@gmail.com>
  */
 namespace RBAC\Test;
 
 use PDO;
 use PHPUnit_Extensions_Database_TestCase;
 use PHPUnit_Extensions_Database_DataSet_IDataSet;
+use RBAC\DataStore\Adapter\PDOMySQLAdapter;
+use RBAC\DataStore\StorageInterface;
+use RBAC\Manager\RoleManager;
 
 /**
- *
  * SPEED TIP:
  * http://dev.mysql.com/doc/refman/5.5/en/innodb-parameters.html#sysvar_innodb_flush_log_at_trx_commit
  * Set this to 2
@@ -20,49 +22,54 @@ class DBTestCase extends PHPUnit_Extensions_Database_TestCase
     use TestTrait;
 
     /**
-     * @var PDO
+     * @var StorageInterface
      */
-    static protected $db = null;
+    public $adapter = null;
 
     // only instantiate PHPUnit_Extensions_Database_DB_IDatabaseConnection once per test
     protected $conn = null;
 
-    final public function getConnection()
-    {
-        if ($this->conn === null) {
-            if (self::$db == null) {
-                $db = new PDO($GLOBALS['DB_DSN'], $GLOBALS['DB_USER'], $GLOBALS['DB_PASSWD']);
-                $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-                $databases = array_map(
-                    function ($db) {
-                        return $db->Database;
-                    },
-                    $db->query("SHOW DATABASES")->fetchAll(PDO::FETCH_OBJ)
-                );
-                if (!in_array($GLOBALS['DB_DBNAME'], $databases)) {
-                    $db->query("CREATE DATABASE " . $GLOBALS['DB_DBNAME']);
-                    $db->query("USE " . $GLOBALS['DB_DBNAME']);
-                    $schema_path = $this->getRootPath() . "/schema/rbac.sql";
-                    $schema = file_get_contents($schema_path);
-                    $db->query($schema);
-                } else {
-                    $db->query("USE " . $GLOBALS['DB_DBNAME']);
-                }
-                self::$db = $db;
+    public function setup_pdo_adapter(StorageInterface $storage_adapter, $init = true) {
+        $storage_adapter->getDBConn()->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        if ($init) {
+            switch(get_class($storage_adapter)) {
+                case 'RBAC\DataStore\Adapter\PDOMySQLAdapter':
+                    $storage_adapter->getDBConn()->beginTransaction();
+                    $queries = [
+                        'DROP TABLE IF EXISTS auth_role_permissions',
+                        'DROP TABLE IF EXISTS auth_subject_role',
+                        'DROP TABLE IF EXISTS auth_role',
+                        'DROP TABLE IF EXISTS auth_permission',
+
+                    ];
+                    foreach ($queries as $query) {
+                        $storage_adapter->getDBConn()->query($query);
+                    }
+                    $storage_adapter->getDBConn()->commit();
+                    $schema_name = "mysql_innodb.sql";
+                    break;
+                case 'RBAC\DataStore\Adapter\PDOSQLiteAdapter':
+                    $schema_name = "sqlite.sql";
+                    break;
+                default:
+                    throw new \Exception("Unsupported testing adapter: " . get_class($storage_adapter));
             }
-            $this->conn = $this->createDefaultDBConnection(self::$db, $GLOBALS['DB_DBNAME']);
+            $init_status = $storage_adapter->getDBConn()->exec(
+                file_get_contents($this->getRootPath() . "/schema/" . $schema_name)
+            );
+            if ($init_status === null) {
+                throw new \PDOException("Failed to setup fixture data");
+            }
+
         }
-        return $this->conn;
+        $this->conn = $this->createDefaultDBConnection($storage_adapter->getDBConn());
+        $this->adapter = $storage_adapter;
+        return $this->getConnection();
     }
 
-    public function getSetUpOperation()
+    final public function getConnection()
     {
-        $cascadeTruncates = true; // If you want cascading truncates, false otherwise. If unsure choose false.
-
-        return new \PHPUnit_Extensions_Database_Operation_Composite(array(
-            new TruncateOperation($cascadeTruncates),
-            \PHPUnit_Extensions_Database_Operation_Factory::INSERT()
-        ));
+        return $this->conn;
     }
 
     /**
@@ -72,5 +79,15 @@ class DBTestCase extends PHPUnit_Extensions_Database_TestCase
     {
         $fixture_root = $this->getRootPath() . "/tests/fixtures/dataset.xml";
         return $this->createXMLDataSet($fixture_root);
+    }
+
+    protected function getMockManager()
+    {
+        return new RoleManager($this->getMockDB(), $this->getMockLogger());
+    }
+
+    public function getRoleManager()
+    {
+        return new RoleManager($this->adapter, $this->getMockLogger());
     }
 }
