@@ -32,8 +32,30 @@ class DBTestCase extends PHPUnit_Extensions_Database_TestCase
     public function setup_pdo_adapter(StorageInterface $storage_adapter, $init = true) {
         $storage_adapter->getDBConn()->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         if ($init) {
+            switch(get_class($storage_adapter)) {
+                case 'RBAC\DataStore\Adapter\PDOMySQLAdapter':
+                    $storage_adapter->getDBConn()->beginTransaction();
+                    $queries = [
+                        'DROP TABLE IF EXISTS auth_role_permissions',
+                        'DROP TABLE IF EXISTS auth_subject_role',
+                        'DROP TABLE IF EXISTS auth_role',
+                        'DROP TABLE IF EXISTS auth_permission',
+
+                    ];
+                    foreach ($queries as $query) {
+                        $storage_adapter->getDBConn()->query($query);
+                    }
+                    $storage_adapter->getDBConn()->commit();
+                    $schema_name = "mysql_innodb.sql";
+                    break;
+                case 'RBAC\DataStore\Adapter\PDOSQLiteAdapter':
+                    $schema_name = "sqlite.sql";
+                    break;
+                default:
+                    throw new \Exception("Unsupported testing adapter: " . get_class($storage_adapter));
+            }
             $init_status = $storage_adapter->getDBConn()->exec(
-                file_get_contents($this->getRootPath() . "/schema/sqlite.sql")
+                file_get_contents($this->getRootPath() . "/schema/" . $schema_name)
             );
             if ($init_status === null) {
                 throw new \PDOException("Failed to setup fixture data");
@@ -49,7 +71,6 @@ class DBTestCase extends PHPUnit_Extensions_Database_TestCase
     {
         return $this->conn;
     }
-
 
     /**
      * @return PHPUnit_Extensions_Database_DataSet_IDataSet
