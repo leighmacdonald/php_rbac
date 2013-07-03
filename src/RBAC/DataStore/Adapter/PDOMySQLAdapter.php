@@ -33,7 +33,7 @@ class PDOMySQLAdapter extends Logger implements StorageInterface
     public $db = null;
 
     /**
-     * @param PDO             $db
+     * @param PDO $db
      * @param LoggerInterface $logger
      */
     public function __construct(PDO $db, LoggerInterface $logger = null)
@@ -47,7 +47,8 @@ class PDOMySQLAdapter extends Logger implements StorageInterface
     /**
      * @return null|PDO
      */
-    public function getDBConn() {
+    public function getDBConn()
+    {
         return $this->db;
     }
 
@@ -96,18 +97,6 @@ class PDOMySQLAdapter extends Logger implements StorageInterface
             return false;
         }
         return true;
-    }
-
-    /**
-     * Sets a logger instance on the object
-     *
-     * @param LoggerInterface $logger
-     *
-     * @return null
-     */
-    public function setLogger(LoggerInterface $logger)
-    {
-        $this->logger = $logger;
     }
 
     /**
@@ -222,7 +211,7 @@ class PDOMySQLAdapter extends Logger implements StorageInterface
         try {
             $cur->execute();
             if (!$role->role_id) {
-                $role->role_id = (int) $this->db->lastInsertId();
+                $role->role_id = (int)$this->db->lastInsertId();
             }
             $this->db->commit();
         } catch (PDOException $db_err) {
@@ -241,7 +230,7 @@ class PDOMySQLAdapter extends Logger implements StorageInterface
     }
 
     /**
-     * @param Role       $role
+     * @param Role $role
      * @param Permission $permission
      *
      * @return bool
@@ -372,7 +361,7 @@ class PDOMySQLAdapter extends Logger implements StorageInterface
         if (!$role_ids) {
             return [];
         }
-        $role_ids = (array) $role_ids;
+        $role_ids = (array)$role_ids;
         if ($multi) {
             $in_query = join(",", array_fill(0, count($role_ids), "?"));
             $query = "
