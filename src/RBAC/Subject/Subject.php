@@ -27,7 +27,7 @@ class Subject implements SubjectInterface
     private $roles;
 
     /**
-     * @param int     $subject_id An ID tied into your own user management system
+     * @param int $subject_id An ID tied into your own user management system
      * @param RoleSet $role_set   (optional) A RoleSet supplied in the constructor
      *
      * @internal param int $user_id A user id to

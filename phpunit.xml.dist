@@ -17,6 +17,8 @@
         <!-- The database will be created automatically if it doesn't exist, assuming the user has rights to -->
         <var name="DB_DSN_SQLITE" value="sqlite::memory:"/>
         <!--<var name="DB_DSN_MYSQL" value="mysql:host=localhost;dbname=testdb"/>-->
+        <!--<var name="DB_DSN_MYSQL_USER" value="username"/>-->
+        <!--<var name="DB_DSN_MYSQL_PASS" value="password"/>-->
     </php>
 
     <logging>

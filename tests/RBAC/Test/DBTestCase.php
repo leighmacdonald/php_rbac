@@ -29,10 +29,11 @@ class DBTestCase extends PHPUnit_Extensions_Database_TestCase
     // only instantiate PHPUnit_Extensions_Database_DB_IDatabaseConnection once per test
     protected $conn = null;
 
-    public function setup_pdo_adapter(StorageInterface $storage_adapter, $init = true) {
+    public function setup_pdo_adapter(StorageInterface $storage_adapter, $init = true)
+    {
         $storage_adapter->getDBConn()->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         if ($init) {
-            switch(get_class($storage_adapter)) {
+            switch (get_class($storage_adapter)) {
                 case 'RBAC\DataStore\Adapter\PDOMySQLAdapter':
                     $storage_adapter->getDBConn()->beginTransaction();
                     $queries = [

@@ -34,7 +34,8 @@ class MockStorage extends PDO implements StorageInterface
     /**
      * @return null|PDO
      */
-    public function getDBConn() {
+    public function getDBConn()
+    {
         return $this;
     }
 

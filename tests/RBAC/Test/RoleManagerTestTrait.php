@@ -7,7 +7,8 @@ use RBAC\Permission;
 use RBAC\Role\Role;
 use RBAC\Subject\Subject;
 
-trait RoleManagerTestTrait {
+trait RoleManagerTestTrait
+{
     public function testPermissionFetchById()
     {
         $this->assertEquals(1, $this->rm->permissionFetchById(1)->permission_id);

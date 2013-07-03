@@ -38,8 +38,8 @@ class Permission
     /**
      * Configure and return a new Permission instance ready to be saved to the backend data store
      *
-     * @param string   $name          Name if the permission, this is treated as a key and must be unique
-     * @param string   $description   Optional description.
+     * @param string $name          Name if the permission, this is treated as a key and must be unique
+     * @param string $description   Optional description.
      * @param null|int $permission_id Optional permission ID
      *
      * @return Permission

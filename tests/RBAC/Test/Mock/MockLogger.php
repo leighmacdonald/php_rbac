@@ -14,7 +14,7 @@ class MockLogger implements LoggerInterface
      * System is unusable.
      *
      * @param string $message
-     * @param array  $context
+     * @param array $context
      *
      * @return null
      */
@@ -29,7 +29,7 @@ class MockLogger implements LoggerInterface
      * trigger the SMS alerts and wake you up.
      *
      * @param string $message
-     * @param array  $context
+     * @param array $context
      *
      * @return null
      */
@@ -43,7 +43,7 @@ class MockLogger implements LoggerInterface
      * Example: Application component unavailable, unexpected exception.
      *
      * @param string $message
-     * @param array  $context
+     * @param array $context
      *
      * @return null
      */
@@ -57,7 +57,7 @@ class MockLogger implements LoggerInterface
      * be logged and monitored.
      *
      * @param string $message
-     * @param array  $context
+     * @param array $context
      *
      * @return null
      */
@@ -72,7 +72,7 @@ class MockLogger implements LoggerInterface
      * that are not necessarily wrong.
      *
      * @param string $message
-     * @param array  $context
+     * @param array $context
      *
      * @return null
      */
@@ -85,7 +85,7 @@ class MockLogger implements LoggerInterface
      * Normal but significant events.
      *
      * @param string $message
-     * @param array  $context
+     * @param array $context
      *
      * @return null
      */
@@ -99,7 +99,7 @@ class MockLogger implements LoggerInterface
      * Example: User logs in, SQL logs.
      *
      * @param string $message
-     * @param array  $context
+     * @param array $context
      *
      * @return null
      */
@@ -112,7 +112,7 @@ class MockLogger implements LoggerInterface
      * Detailed debug information.
      *
      * @param string $message
-     * @param array  $context
+     * @param array $context
      *
      * @return null
      */
@@ -124,9 +124,9 @@ class MockLogger implements LoggerInterface
     /**
      * Logs with an arbitrary level.
      *
-     * @param mixed  $level
+     * @param mixed $level
      * @param string $message
-     * @param array  $context
+     * @param array $context
      *
      * @return null
      */
