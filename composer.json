@@ -5,7 +5,7 @@
     "homepage": "https://github.com/leighmacdonald/php_rbac",
     "license": "MIT",
     "keywords": ["auth", "authentication", "rbac", "database"],
-    "version": "0.9.0",
+    "version": "1.0.0",
     "authors": [
         {
             "name": "Leigh MacDonald",
