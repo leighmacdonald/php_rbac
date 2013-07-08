@@ -121,22 +121,22 @@ class MockStorage extends PDO implements StorageInterface
         return false;
     }
 
-    public function roleFetch()
+    public function roleFetch($permissions = true)
     {
         return [];
     }
 
-    public function roleFetchByName($role_name)
+    public function roleFetchByName($role_name, $permissions = true)
     {
         return false;
     }
 
-    public function roleFetchById($role_ids)
+    public function roleFetchById($role_ids, $permissions = true)
     {
         return is_array($role_ids) ? [] : false;
     }
 
-    public function roleFetchSubjectRoles(SubjectInterface $subject)
+    public function roleFetchSubjectRoles(SubjectInterface $subject, $permissions = true)
     {
         return [];
     }

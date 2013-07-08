@@ -36,6 +36,13 @@ class Role
     private $permissions = [];
 
     /**
+     * Array of assigned permission_id's, this is only used to cut on queries
+     *
+     * @var int[]
+     */
+    public $_permission_ids = [];
+
+    /**
      * Check if the role allows the permission being requested.
      *
      * @param string $permission Name of Permission being checked

@@ -104,29 +104,38 @@ class PDOMySQLAdapter extends Logger implements StorageInterface
      *
      * @param $permission_id
      *
-     * @return bool|mixed
+     * @return bool|Permission|Permission[]
      */
     public function permissionFetchById($permission_id)
     {
+        $multi = is_array($permission_id);
+        if (!$multi) {
+            $permission_id = [$permission_id];
+        }
+        $in_query = join(',', $permission_id);
         $query = "
             SELECT
                 permission_id, `name`, description, added_on, updated_on
             FROM
                 auth_permission
             WHERE
-                permission_id = :permission_id
-        ";
+                permission_id IN ($in_query)
+            ";
         $cur = $this->db->prepare($query);
-        $cur->bindParam(":permission_id", $permission_id, PDO::PARAM_INT);
         try {
             $cur->execute();
-            return $cur->fetchObject(self::CLASS_PERMISSION);
+            if ($multi) {
+                $permissions = $cur->fetchAll(PDO::FETCH_CLASS, self::CLASS_PERMISSION);
+            } else {
+                $permissions = $cur->fetchObject(self::CLASS_PERMISSION);
+            }
         } catch (PDOException $db_err) {
             if ($this->logger) {
                 $this->logger->error("Error trying to fetch permission by ID", ['exception' => $db_err]);
             }
-            return false;
+            $permissions = ($multi) ? [] : false;
         }
+        return $permissions;
     }
 
     /**
@@ -301,7 +310,7 @@ class PDOMySQLAdapter extends Logger implements StorageInterface
     /**
      * @return Role[]
      */
-    public function roleFetch()
+    public function roleFetch($permissions = true)
     {
         $query = "
             SELECT
@@ -330,11 +339,14 @@ class PDOMySQLAdapter extends Logger implements StorageInterface
     {
         $query = "
             SELECT
-                role_id, `name`, description, added_on, updated_on
+                r.role_id, r.`name`, r.description, r.added_on, r.updated_on,
+                GROUP_CONCAT(p.permission_id) as _permission_ids
             FROM
-                auth_role
+                auth_role r
+            LEFT OUTER JOIN
+                auth_role_permissions p ON p.role_id = r.role_id
             WHERE
-                `name` = :name
+                r.`name` = :name
         ";
         $cur = $this->db->prepare($query);
         $cur->bindParam(":name", $role_name, PDO::PARAM_STR, 32);
@@ -347,7 +359,7 @@ class PDOMySQLAdapter extends Logger implements StorageInterface
             }
             $role = false;
         }
-        return $role;
+        return ($role->role_id) ? $role : false;
     }
 
     /**
@@ -362,35 +374,23 @@ class PDOMySQLAdapter extends Logger implements StorageInterface
             return [];
         }
         $role_ids = (array)$role_ids;
-        if ($multi) {
-            $in_query = join(",", array_fill(0, count($role_ids), "?"));
-            $query = "
-                SELECT
-                    role_id, `name`, description, added_on, updated_on
-                FROM
-                    auth_role
-                WHERE
-                    role_id IN(" . $in_query . ")";
-        } else {
-            $query = "
-                SELECT
-                  role_id, `name`, description, added_on, updated_on
-                FROM
-                    auth_role
-                WHERE
-                    role_id = :role_id
-            ";
-        }
 
-        $cur = $this->db->prepare($query);
+        $query = "
+            SELECT
+                r.role_id, r.`name`,r. description, r.added_on, r.updated_on,
+                GROUP_CONCAT(p.permission_id) as _permission_ids
+            FROM
+                auth_role r
+            LEFT OUTER JOIN
+                auth_role_permissions p ON p.role_id = r.role_id
+            WHERE
+                r.role_id IN('" . join("','", $role_ids) . "')
+            GROUP BY p.role_id
+        ";
         try {
-            if ($multi) {
-                $cur->execute($role_ids);
-                $roles = $cur->fetchAll(PDO::FETCH_CLASS, self::CLASS_ROLE);
-            } else {
-                $cur->bindParam(":role_id", $role_ids[0], PDO::PARAM_INT);
-                $cur->execute();
-                $roles = $cur->fetchObject(self::CLASS_ROLE);
+            $roles = $this->db->query($query)->fetchAll(PDO::FETCH_CLASS, self::CLASS_ROLE);
+            if (!$multi) {
+                $roles = (sizeof($roles) > 0) ? $roles[0] : false;
             }
         } catch (PDOException $db_err) {
             if ($this->logger) {
@@ -398,6 +398,7 @@ class PDOMySQLAdapter extends Logger implements StorageInterface
             }
             $roles = [];
         }
+
         return $roles;
     }
 

@@ -86,23 +86,44 @@ class RoleManager extends Logger
      * @param \RBAC\Subject\SubjectInterface $subject Initialized subject instance
      * @return Role[] Roles the user has assigned
      */
-    public function roleFetchSubjectRoles(SubjectInterface $subject)
+    public function roleFetchSubjectRoles(SubjectInterface $subject, $permissions = true)
     {
-        return $this->storage->roleFetchSubjectRoles($subject);
+        return $this->storage->roleFetchSubjectRoles($subject, $permissions);
     }
 
     /**
      * Load the full permission set into the role instance
      *
-     * @param Role $role Role to load permissions into
-     * @return Role
+     * @param $roles
+     * @return bool|Role|Role[]
      */
-    public function roleLoadPermissions(Role $role)
+    public function roleLoadPermissions($roles)
     {
-        foreach ($this->storage->permissionFetchByRole($role) as $permission) {
-            $role->addPermission($permission);
+        if (!$roles) {
+            return false;
         }
-        return $role;
+        $multi = is_array($roles);
+        if (!$multi) {
+            $roles = [$roles];
+        }
+        $permissions_ids = [];
+
+        foreach ($roles as $role) {
+            if (!is_array($role->_permission_ids)) {
+                $role->_permission_ids = explode(',', $role->_permission_ids);
+            }
+            $permissions_ids = array_merge($permissions_ids, $role->_permission_ids);
+        }
+        $perms = $this->permissionFetchById($permissions_ids);
+        foreach ($perms as $perm) {
+            foreach ($roles as $role) {
+                if (in_array($perm->permission_id, $role->_permission_ids)) {
+                    $role->addPermission($perm);
+                    continue;
+                }
+            }
+        }
+        return true;
     }
 
     /**
@@ -193,11 +214,11 @@ class RoleManager extends Logger
      *
      * @return Role[]
      */
-    public function roleFetch()
+    public function roleFetch($permissions = true)
     {
         $roles = $this->storage->roleFetch();
-        foreach ($roles as $role) {
-            $this->roleLoadPermissions($role);
+        if ($roles and $permissions) {
+            $this->roleLoadPermissions($roles);
         }
         return $roles;
     }
@@ -208,10 +229,13 @@ class RoleManager extends Logger
      * @param string $role_name Role name
      * @return bool|Role
      */
-    public function roleFetchByName($role_name)
+    public function roleFetchByName($role_name, $permissions = true)
     {
         $role = $this->storage->roleFetchByName($role_name);
-        return ($role) ? $this->roleLoadPermissions($role) : false;
+        if ($role and $permissions) {
+            $this->roleLoadPermissions($role);
+        }
+        return $role;
     }
 
     /**
@@ -223,19 +247,13 @@ class RoleManager extends Logger
      * @param int|int[] $role_ids
      * @return bool|Role
      */
-    public function roleFetchById($role_ids)
+    public function roleFetchById($role_ids, $permissions = true)
     {
-        $roles = $this->storage->roleFetchById($role_ids);
-        if ($roles) {
-            if (is_array($roles)) {
-                foreach ($roles as $role) {
-                    $this->roleLoadPermissions($role);
-                }
-            } else {
-                $this->roleLoadPermissions($roles);
-            }
+        $role = $this->storage->roleFetchById($role_ids);
+        if ($role and $permissions) {
+            $this->roleLoadPermissions($role);
         }
-        return $roles;
+        return $role;
     }
 
     /**

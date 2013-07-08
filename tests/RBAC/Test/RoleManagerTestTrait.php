@@ -173,6 +173,12 @@ trait RoleManagerTestTrait
 
         $roles = $this->rm->roleFetchById([1, 2]);
         $this->assertEquals(2, sizeof($roles));
+        foreach ($roles as $role) {
+            $this->assertTrue(sizeof($role->getPermissions()) > 0);
+            foreach ($role->getPermissions() as $permission) {
+                $this->assertTrue($role->hasPermission($permission->name));
+            }
+        }
     }
 
     public function testRoleFetchByIdDBErr()
