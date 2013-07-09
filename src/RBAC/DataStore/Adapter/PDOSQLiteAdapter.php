@@ -6,17 +6,12 @@
 
 namespace RBAC\DataStore\Adapter;
 
-
-use RBAC\DataStore\StorageInterface;
-use RBAC\Permission;
-use RBAC\Role\Role;
-
 /**
  * Provides a storage driver for SQLite based mostly on the MySQL Adapter.
  * Class PDOSQLiteAdapter
  * @package RBAC\DataStore\Adapter
  */
-class PDOSQLiteAdapter extends PDOMySQLAdapter implements StorageInterface
+class PDOSQLiteAdapter extends BaseSQLAdapter
 {
     protected $sql_time_func = 'datetime(current_timestamp)';
 }
