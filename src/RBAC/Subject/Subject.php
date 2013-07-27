@@ -96,7 +96,7 @@ class Subject implements SubjectInterface
     {
         if (!$this->hasPermission($permission)) {
             throw new InsufficientPermission(
-                "Insufficient permission to complete your request: {$permission}]"
+                "Insufficient permission to complete your request: {$permission}"
             );
         }
     }
