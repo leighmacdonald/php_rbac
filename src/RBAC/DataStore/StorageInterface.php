@@ -119,9 +119,10 @@ interface StorageInterface extends LoggerAwareInterface
      * Fetch and return an array of the roles that the subject currently belongs to.
      *
      * @param SubjectInterface $subject
+     * @param bool $permissions
      * @return Role[]
      */
-    public function roleFetchSubjectRoles(SubjectInterface $subject);
+    public function roleFetchSubjectRoles(SubjectInterface $subject, $permissions = true);
 
     /**
      * Associate a subject with the role provided.

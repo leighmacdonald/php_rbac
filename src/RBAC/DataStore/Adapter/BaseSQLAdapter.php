@@ -406,9 +406,10 @@ abstract class BaseSQLAdapter extends Logger implements StorageInterface
     /**
      * @param SubjectInterface $subject
      *
+     * @param bool $permissions Load permission sets along with roles
      * @return Role|\RBAC\Role\Role[]
      */
-    public function roleFetchSubjectRoles(SubjectInterface $subject)
+    public function roleFetchSubjectRoles(SubjectInterface $subject, $permissions = true)
     {
         $query = "
             SELECT

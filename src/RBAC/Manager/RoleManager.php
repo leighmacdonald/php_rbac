@@ -68,12 +68,13 @@ class RoleManager extends Logger
      * Load a user instance with its corresponding RoleSet
      *
      * @param \RBAC\Subject\SubjectInterface $subject Initialized subject instance
+     * @param bool $permissions
      * @return \RBAC\Subject\SubjectInterface
      */
-    public function loadSubjectRoles(SubjectInterface $subject)
+    public function loadSubjectRoles(SubjectInterface $subject, $permissions = true)
     {
         //todo cache this.
-        $role_set = new RoleSet($this->roleFetchSubjectRoles($subject));
+        $role_set = new RoleSet($this->roleFetchSubjectRoles($subject, $permissions));
         $subject->loadRoleSet($role_set);
         return $subject;
     }
