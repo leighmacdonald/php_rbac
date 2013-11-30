@@ -8,8 +8,6 @@ namespace RBAC\Test\Manager;
 use PDO;
 use RBAC\DataStore\Adapter\PDOMySQLAdapter;
 use RBAC\Manager\RoleManager;
-use RBAC\Permission;
-use RBAC\Role\Role;
 use RBAC\Test\DBTestCase;
 use RBAC\Test\RoleManagerTestTrait;
 

@@ -7,7 +7,6 @@ namespace RBAC\Manager;
 
 use Psr\Log\LoggerInterface;
 use RBAC\DataStore\StorageInterface;
-use RBAC\Exception\ValidationError;
 use RBAC\Logger;
 use RBAC\Permission;
 use RBAC\Role\Role;
@@ -84,11 +83,16 @@ class RoleManager extends Logger
      *
      * @todo cache roles
      * @param \RBAC\Subject\SubjectInterface $subject Initialized subject instance
+     * @param bool $permissions Load the permission set
      * @return Role[] Roles the user has assigned
      */
     public function roleFetchSubjectRoles(SubjectInterface $subject, $permissions = true)
     {
-        return $this->storage->roleFetchSubjectRoles($subject, $permissions);
+        $roles = $this->storage->roleFetchSubjectRoles($subject, $permissions);
+        if ($permissions) {
+            $this->roleLoadPermissions($roles);
+        }
+        return $roles;
     }
 
     /**
@@ -212,6 +216,7 @@ class RoleManager extends Logger
     /**
      * Fetch all currently defined roles from the database.
      *
+     * @param bool $permissions
      * @return Role[]
      */
     public function roleFetch($permissions = true)
@@ -227,6 +232,7 @@ class RoleManager extends Logger
      * Fetch a role from the database via its unique name.
      *
      * @param string $role_name Role name
+     * @param bool $permissions
      * @return bool|Role
      */
     public function roleFetchByName($role_name, $permissions = true)
@@ -245,6 +251,7 @@ class RoleManager extends Logger
      * If an array of role ids is given, an array of results will be returned.
      *
      * @param int|int[] $role_ids
+     * @param bool $permissions
      * @return bool|Role
      */
     public function roleFetchById($role_ids, $permissions = true)

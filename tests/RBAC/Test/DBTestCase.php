@@ -33,8 +33,28 @@ class DBTestCase extends PHPUnit_Extensions_Database_TestCase
     {
         $storage_adapter->getDBConn()->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         if ($init) {
-            switch (get_class($storage_adapter)) {
+            $class_name = get_class($storage_adapter);
+            switch ($class_name) {
+                case 'RBAC\DataStore\Adapter\PDOPgAdapter':
+                    $storage_adapter->getDBConn()->beginTransaction();
+                    $queries = [
+                        'DROP TABLE IF EXISTS auth_role_permissions',
+                        'DROP SEQUENCE auth_role_permissions_seq',
+                        'DROP TABLE IF EXISTS auth_subject_role',
+                        'DROP TABLE IF EXISTS auth_role',
+                        'DROP SEQUENCE auth_role_id_seq',
+                        'DROP TABLE IF EXISTS auth_permission',
+                        'DROP SEQUENCE auth_permission_id_seq',
+
+                    ];
+                    foreach ($queries as $query) {
+                        $storage_adapter->getDBConn()->query($query);
+                    }
+                    $storage_adapter->getDBConn()->commit();
+                    $schema_name = "postgres.sql";
+                    break;
                 case 'RBAC\DataStore\Adapter\PDOMySQLAdapter':
+
                     $storage_adapter->getDBConn()->beginTransaction();
                     $queries = [
                         'DROP TABLE IF EXISTS auth_role_permissions',
